@@ -43,6 +43,10 @@ namespace Ogre
     Material::Material( ResourceManager *creator, const String &name, ResourceHandle handle,
                         const String &group, bool isManual, ManualResourceLoader *loader ) :
         Resource( creator, name, handle, group, isManual, loader ),
+#ifdef OGRE_BELIGHT_MINI  // materials library
+        m_li3d_flags( 0 ),
+        m_li3d_tilesize( 0.0f, 0.0f ),
+#endif
         mReceiveShadows( true ),
         mTransparencyCastsShadows( false ),
         mCompilationRequired( true )
@@ -92,6 +96,9 @@ namespace Ogre
         mLoadingState = rhs.mLoadingState;
         mIsBackgroundLoaded = rhs.mIsBackgroundLoaded;
 
+#ifdef OGRE_BELIGHT_MINI
+        m_li3d_tilesize = rhs.m_li3d_tilesize;
+#endif
         // Copy Techniques
         this->removeAllTechniques();
         Techniques::const_iterator i, iend;

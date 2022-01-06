@@ -32,6 +32,9 @@ THE SOFTWARE.
 #include "OgreStringVector.h"
 
 #include "OgreHeaderPrefix.h"
+#ifdef OGRE_BELIGHT_MINI
+#include "OgreString.h"
+#endif
 
 namespace Ogre
 {
@@ -321,6 +324,16 @@ namespace Ogre
         HlmsMacroblock const *mMacroblock[2];
         HlmsBlendblock const *mBlendblock[2];
 
+#ifdef OGRE_BELIGHT_MINI    // materials library
+        String m_li3d_legacynames;
+        String m_li3d_names;
+        Vector2 m_li3d_tilesize;
+        unsigned int m_li3d_flags;
+        Real    m_li3d_texRotate;
+        Vector2 m_li3d_texScale;
+        Vector2 m_li3d_texScroll;
+#endif
+
     public:
         /// When false, we won't try to have Textures become resident
         bool mAllowTextureResidencyChange;
@@ -509,6 +522,30 @@ namespace Ogre
                                    HlmsTextureExportListener *listener );
 
         static const char *getCmpString( CompareFunction compareFunction );
+
+#ifdef OGRE_BELIGHT_MINI    // materials library
+        const String &get_li3d_legacynames() const { return m_li3d_legacynames; }
+        void set_li3d_legacynames( const String &value ) { m_li3d_legacynames = value; }
+
+        const String &get_li3d_names() const { return m_li3d_names; }
+        void set_li3d_names( const String &value, bool replace = true );
+        
+        unsigned int get_li3d_flags() const { return m_li3d_flags; }
+        void set_li3d_flags( unsigned int flags ) { m_li3d_flags = flags; }
+        
+        const Vector2 &get_li3d_tilesize() const { return m_li3d_tilesize; }
+        void set_li3d_tilesize( const Vector2 &sz ) { m_li3d_tilesize = sz; }
+        
+        const Vector2 &get_li3d_texScale() const { return m_li3d_texScale; }
+        const Vector2 &get_li3d_texScroll() const { return m_li3d_texScroll; }
+        Real           get_li3d_texRotate() const { return m_li3d_texRotate; }
+        virtual void set_li3d_texScale(const Vector2& scale);
+        virtual void set_li3d_texScroll(const Vector2& scroll);
+        virtual void set_li3d_texRotate(Real degRotate);
+
+        virtual void collectAllTextures(set<String>::type &collectedTextures){}
+        virtual void destroy(); //cleanup datablock to be ready to get clonned stuff
+#endif
 
     protected:
         virtual void cloneImpl( HlmsDatablock *datablock ) const {};

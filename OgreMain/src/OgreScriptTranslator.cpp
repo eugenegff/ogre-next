@@ -1297,6 +1297,103 @@ namespace Ogre{
                 PropertyAbstractNode *prop = static_cast<PropertyAbstractNode*>((*i).get());
                 switch(prop->id)
                 {
+#ifdef OGRE_BELIGHT_MINI // materials library
+                case ID_LI3D_NAMES:
+                    {
+                        if (prop->values.empty())
+                            compiler->addError(ScriptCompiler::CE_STRINGEXPECTED, prop->file, prop->line);
+                        else
+                        {                            
+                            String li3d_names;
+                            for(AbstractNodeList::iterator j = prop->values.begin(); j != prop->values.end(); ++j)
+                            {
+                                String v;
+                                if(getString(*j, &v))
+                                {
+                                    if(!li3d_names.empty())
+                                        li3d_names.append(" ");
+                                    li3d_names.append("\"").append(v).append("\"");
+                                }else
+                                    compiler->addError(ScriptCompiler::CE_STRINGEXPECTED, prop->file, prop->line, "Wrong parameters for li3d_names");
+                            }
+                            
+                            if(!li3d_names.empty())
+                                mMaterial->set_li3d_names(li3d_names);
+                        }
+                    }
+                    break;
+                case ID_LI3D_LEGACYNAMES:
+                    {
+                        
+                        if (prop->values.empty())
+                            compiler->addError(ScriptCompiler::CE_STRINGEXPECTED, prop->file, prop->line);
+                        else
+                        {   
+                            String li3d_legacynames;
+                            for(AbstractNodeList::iterator j = prop->values.begin(); j != prop->values.end(); ++j)
+                            {
+                                String v;
+                                if(getString(*j, &v))
+                                {
+                                    if(!li3d_legacynames.empty())
+                                        li3d_legacynames.append(" ");
+                                    li3d_legacynames.append("\"").append(v).append("\"");
+                                }else
+                                    compiler->addError(ScriptCompiler::CE_STRINGEXPECTED, prop->file, prop->line, "Wrong parameters for li3d_legacynames");
+                            }
+                            
+                            if(!li3d_legacynames.empty())
+                                mMaterial->set_li3d_legacynames(li3d_legacynames);
+                        }
+                    }
+                    break;
+                case ID_LI3D_FLAGS:
+                    {
+                        if (prop->values.empty())
+                            compiler->addError(ScriptCompiler::CE_NUMBEREXPECTED, prop->file, prop->line, "Wrong number of parameters for li3d_flags, expected 1 or more");
+                        {    
+                            unsigned int flags = 0;
+                            for(AbstractNodeList::iterator j = prop->values.begin(); j != prop->values.end(); ++j)
+                            {
+                                String vs;
+                                uint32 vu;
+                                if(getUInt(*j, &vu))
+                                {
+                                    flags |= vu;			                                    
+                                }else if(getString(*j, &vs))
+                                {
+                                    if(vs=="readonly")
+                                        flags |= 0x01;
+                                    else if(vs=="hidden")
+                                        flags |= 0x02;                                        
+                                }else
+                                    compiler->addError(ScriptCompiler::CE_STRINGEXPECTED, prop->file, prop->line, "Wrong parameters for li3d_flags");
+                            }		
+                            
+                            mMaterial->set_li3d_flags(flags);                        
+                        } 
+                    }
+                    break;
+                    case ID_LI3D_TILESIZE:
+                    {
+                        if(prop->values.empty() || prop->values.size() != 2)
+                        {
+                            compiler->addError(ScriptCompiler::CE_NUMBEREXPECTED, prop->file, prop->line, "Wrong number of parameters for li3d_tilesize, expected 2");
+                        }
+                        else
+                        {
+                            AbstractNodeList::const_iterator i0 = getNodeAt(prop->values, 0), i1 = getNodeAt(prop->values, 1);
+                            Vector2 tileSize(0.0f, 0.0f);
+                            if(getReal(*i0, &tileSize.x) && getReal(*i1, &tileSize.y))
+                                mMaterial->set_li3d_tilesize(tileSize);
+                            else
+                                compiler->addError(ScriptCompiler::CE_INVALIDPARAMETERS, prop->file, prop->line,
+                                                   (*i0)->getValue() + " and/or " + (*i1)->getValue() + " is invalid; both must be numbers");
+                        }
+                    }
+                    break;
+#endif
+                        
                 case ID_LOD_VALUES:
                     {
                         Material::LodValueArray lods;
@@ -1392,6 +1489,14 @@ namespace Ogre{
         }
         mMaterial->applyTextureAliases(mTextureAliases);
         mTextureAliases.clear();
+        
+#ifdef OGRE_BELIGHT_MINI // materials library
+        if(compiler->getListener())
+        {
+            TranslatedMaterialScriptCompilerEvent matEvt(mMaterial);
+            compiler->_fireEvent(&matEvt, 0);
+        }
+#endif
     }
 
     /**************************************************************************
@@ -2335,6 +2440,28 @@ namespace Ogre{
                                                prop->values.front()->getValue() + " is not a valid boolean");
                     }
                     break;
+#ifdef OGRE_BELIGHT_MINI
+                case ID_LIGHTING:
+                    if(prop->values.empty())
+                    {
+                        compiler->addError(ScriptCompiler::CE_STRINGEXPECTED, prop->file, prop->line);
+                    }
+                    else if(prop->values.size() > 1)
+                    {
+                        compiler->addError(ScriptCompiler::CE_FEWERPARAMETERSEXPECTED, prop->file, prop->line,
+                                           "lighting must have at most 1 argument");
+                    }
+                    else
+                    {
+                        bool val = false;
+                        if(getBoolean(prop->values.front(), &val))
+                            mPass->setLightingEnabled(val);
+                        else
+                            compiler->addError(ScriptCompiler::CE_INVALIDPARAMETERS, prop->file, prop->line,
+                                               prop->values.front()->getValue() + " is not a valid boolean");
+                    }
+                    break;
+#endif
                 case ID_SHADING:
                     if(prop->values.empty())
                     {

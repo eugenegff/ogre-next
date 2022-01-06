@@ -53,6 +53,9 @@ namespace Ogre
         mLodMaterial( &MovableObject::c_DefaultLodMesh ),
         mHlmsGlobalIndex( std::numeric_limits<uint32>::max() ),
         mRenderableVisible( true ),
+#ifdef OGRE_BELIGHT_MINI
+        mTrackedRenderableIndex( ~0 ),
+#endif
         mPolygonModeOverrideable( true ),
         mUseIdentityProjection( false ),
         mUseIdentityView( false )

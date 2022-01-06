@@ -91,6 +91,10 @@ namespace Ogre
 
         //-------------------------------------------------------------------------
 
+#ifdef OGRE_BELIGHT_MINI
+        /// Lighting enabled?  for backward compatibility
+        bool mLightingEnabled;
+#endif
         /// Max simultaneous lights
         unsigned short mMaxSimultaneousLights;
         /// Starting light index
@@ -340,6 +344,11 @@ namespace Ogre
             setSelfIllumination
         */
         void setEmissive( const ColourValue &emissive ) { setSelfIllumination( emissive ); }
+
+#ifdef OGRE_BELIGHT_MINI
+        void setLightingEnabled( bool enabled ) { mLightingEnabled = enabled; }
+        bool getLightingEnabled( void ) const { return mLightingEnabled; }
+#endif
 
         /** Sets which material properties follow the vertex colour
          */

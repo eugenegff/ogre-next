@@ -302,6 +302,10 @@ namespace Ogre
             }
         }
 
+#ifdef OGRE_BELIGHT_MINI
+        set_li3d_TexTransformToUserValues();
+#endif
+
         bool applyTransparency = false;
         float transparency = 1.0f;
         TransparencyModes transparencyMode = Transparent;
@@ -1132,4 +1136,126 @@ namespace Ogre
             }
         }
     }
+    //-----------------------------------------------------------------------------------
+#ifdef OGRE_BELIGHT_MINI
+    bool HlmsPbsDatablock::isEqual( const HlmsPbsDatablock &other, float fPrec ) const
+    {
+        if( mWorkflow != other.mWorkflow || mBrdf != other.mBrdf ||
+            mFresnelTypeSizeBytes != other.mFresnelTypeSizeBytes || mTwoSided != other.mTwoSided ||
+            mUseAlphaFromTextures != other.mUseAlphaFromTextures ||
+            mReceiveShadows != other.mReceiveShadows ||
+            mCubemapIdxInDescSet != other.mCubemapIdxInDescSet ||
+            mUseEmissiveAsLightmap != other.mUseEmissiveAsLightmap ||
+            mUseDiffuseMapAsGrayscale != other.mUseDiffuseMapAsGrayscale ||
+            mTransparencyMode != other.mTransparencyMode || mCubemapProbe != other.mCubemapProbe )
+            return false;
+
+        for( int i = 0; i < NUM_PBSM_SOURCES; ++i )
+        {
+            if( mUvSource[i] != other.mUvSource[i] )
+                return false;
+        }
+        for( int i = 0; i < 4; ++i )
+        {
+            if( mBlendModes[i] != other.mBlendModes[i] )
+                return false;
+        }
+
+        // now compare floats
+        const float *pThis = &mBgDiffuse[0];
+        const float *pThisLast = &mUserValue[2][3];
+        const float *pOther = &other.mBgDiffuse[0];
+        do
+        {
+            if( fabsf( ( *pThis++ ) - ( *pOther++ ) ) > fPrec )
+                return false;
+        } while( pThis != pThisLast );
+
+        for( int i = 0; i < NUM_PBSM_TEXTURE_TYPES; ++i )
+        {
+            if( mTextures[i] != other.mTextures[i] )
+                return false;
+        }
+
+        return true;
+    }
+
+    void HlmsPbsDatablock::set_li3d_TexTransformToUserValues()
+    {
+        // Assumption: 2D texture coords
+        const Vector2 &scale = get_li3d_texScale();
+        const Vector2 &scroll = get_li3d_texScroll();
+        Real rotate = get_li3d_texRotate();
+        Ogre::Matrix4 xform = Ogre::Matrix4::IDENTITY;
+        if( !Ogre::Math::RealEqual( scale.x, 1.0f ) || !Ogre::Math::RealEqual( scale.y, 1.0f ) )
+        {
+            // Offset to center of texture
+            xform[0][0] = 1 / scale.x;
+            xform[1][1] = 1 / scale.y;
+            // Skip matrix concat since first matrix update
+            xform[0][3] = ( -0.5f * xform[0][0] ) + 0.5f;
+            xform[1][3] = ( -0.5f * xform[1][1] ) + 0.5f;
+        }
+
+        if( !Ogre::Math::RealEqual( scroll.x, 0.0f ) || !Ogre::Math::RealEqual( scroll.y, 0.0f ) )
+        {
+            Ogre::Matrix4 xlate = Ogre::Matrix4::IDENTITY;
+
+            xlate[0][3] = scroll.x;
+            xlate[1][3] = scroll.y;
+
+            xform = xlate * xform;
+        }
+
+        if( !Ogre::Math::RealEqual( rotate, 0.0f ) )
+        {
+            Ogre::Matrix4 rot = Ogre::Matrix4::IDENTITY;
+            Ogre::Radian theta = Ogre::Degree( rotate );
+            Ogre::Real cosTheta = Ogre::Math::Cos( theta );
+            Ogre::Real sinTheta = Ogre::Math::Sin( theta );
+
+            rot[0][0] = cosTheta;
+            rot[0][1] = -sinTheta;
+            rot[1][0] = sinTheta;
+            rot[1][1] = cosTheta;
+            // Offset center of rotation to center of texture
+            rot[0][3] = 0.5f + ( ( -0.5f * cosTheta ) - ( -0.5f * sinTheta ) );
+            rot[1][3] = 0.5f + ( ( -0.5f * sinTheta ) + ( -0.5f * cosTheta ) );
+
+            xform = rot * xform;
+        }
+
+        setUserValue( 0, Ogre::Vector4( xform[0] ) );
+        setUserValue( 1, Ogre::Vector4( xform[1] ) );
+
+        scheduleConstBufferUpdate();
+    }
+
+    void HlmsPbsDatablock::set_li3d_TexTransform( const Vector2 &scale, const Vector2 &scroll,
+                                                  Real degRotate )
+    {
+        HlmsDatablock::set_li3d_texScale( scale );
+        HlmsDatablock::set_li3d_texScroll( scroll );
+        HlmsDatablock::set_li3d_texRotate( degRotate );
+        set_li3d_TexTransformToUserValues();
+    }
+
+    void HlmsPbsDatablock::set_li3d_texScale( const Vector2 &scale )
+    {
+        HlmsDatablock::set_li3d_texScale( scale );
+        set_li3d_TexTransformToUserValues();
+    }
+    void HlmsPbsDatablock::set_li3d_texScroll( const Vector2 &scroll )
+    {
+        HlmsDatablock::set_li3d_texScroll( scroll );
+        set_li3d_TexTransformToUserValues();
+    }
+    void HlmsPbsDatablock::set_li3d_texRotate( Real degRotate )
+    {
+        HlmsDatablock::set_li3d_texRotate( degRotate );
+        set_li3d_TexTransformToUserValues();
+    }
+
+#endif
+
 }  // namespace Ogre

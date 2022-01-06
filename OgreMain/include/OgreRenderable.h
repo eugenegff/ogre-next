@@ -491,6 +491,15 @@ namespace Ogre
         */
         bool mRenderableVisible;
 
+#ifdef OGRE_BELIGHT_MINI
+        /** Index in the vector holding this Rendrable reference in the PlanarReflecetions::mTrackedRenderables.
+            Used for O(1) search/removals.
+        @remarks
+            Despite being public, Do NOT modify it manually.
+        */
+        uint32 mTrackedRenderableIndex;
+#endif
+
     protected:
         bool               mPolygonModeOverrideable;
         bool               mUseIdentityProjection;

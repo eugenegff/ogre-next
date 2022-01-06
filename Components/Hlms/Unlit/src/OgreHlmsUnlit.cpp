@@ -590,8 +590,13 @@ namespace Ogre
             const CompositorPass *pass = sceneManager->getCurrentCompositorPass();
             if( pass )
             {
-                const Light *light =
-                    shadowNode->getLightAssociatedWith( pass->getDefinition()->mShadowMapIdx );
+                const uint8 shadowMapIdx = pass->getDefinition()->mShadowMapIdx;
+                const Light *light = shadowNode->getLightAssociatedWith( shadowMapIdx );
+#ifdef OGRE_BELIGHT_MINI
+                if( light == nullptr )
+                    ;
+                else
+#endif
                 if( light->getType() == Light::LT_DIRECTIONAL )
                     setProperty( HlmsBaseProp::ShadowCasterDirectional, 1 );
                 else if( light->getType() == Light::LT_POINT )

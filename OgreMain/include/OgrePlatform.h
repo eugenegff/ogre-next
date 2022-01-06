@@ -597,4 +597,8 @@ namespace Ogre
 #    pragma warning( disable : 4345 )
 #endif
 
+#if OGRE_PLATFORM == OGRE_PLATFORM_APPLE_IOS || ( OGRE_PLATFORM == OGRE_PLATFORM_APPLE && OGRE_CPU == OGRE_CPU_ARM && OGRE_ARCH_TYPE == OGRE_ARCHITECTURE_64 )
+#define OGRE_TILER_PLATFORM 1
+#endif
+
 #endif

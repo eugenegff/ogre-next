@@ -50,6 +50,10 @@ THE SOFTWARE.
 #    if defined( __GNUC__ ) && !defined( __clang__ )
 #        pragma GCC diagnostic pop
 #    endif
+#    ifdef OGRE_BELIGHT_MINI
+#        include "rapidjson/stringbuffer.h"
+#        include "rapidjson/writer.h"
+#    endif
 
 namespace Ogre
 {
@@ -500,6 +504,77 @@ namespace Ogre
         itor = json.FindMember( "shadow_const_bias" );
         if( itor != json.MemberEnd() && itor->value.IsNumber() )
             datablock->mShadowConstantBias = static_cast<float>( itor->value.GetDouble() );
+
+#    ifdef OGRE_BELIGHT_MINI
+        itor = json.FindMember( "li3d_names" );
+        if( itor != json.MemberEnd() && itor->value.IsString() )
+        {
+            String value( itor->value.GetString(), itor->value.GetStringLength() );
+            datablock->set_li3d_names( value, false );
+        }
+        itor = json.FindMember( "li3d_flags" );
+        if( itor != json.MemberEnd() )
+        {
+            unsigned int flags = 0;
+            if( itor->value.IsUint() )
+            {
+                flags |= itor->value.GetUint();
+            }
+            datablock->set_li3d_flags( flags );
+        }
+        itor = json.FindMember( "li3d_tilesize" );
+        if( itor != json.MemberEnd() )
+        {
+            Vector2 val;
+            if( itor->value.IsArray() && itor->value.Size() == 2u )
+            {
+                if( itor->value[0].IsNumber() && itor->value[1].IsNumber() )
+                {
+                    val.x = static_cast<float>( itor->value[0].GetDouble() );
+                    val.y = static_cast<float>( itor->value[1].GetDouble() );
+                    datablock->set_li3d_tilesize( val );
+                }
+            }
+        }
+        itor = json.FindMember( "li3d_texscale" );
+        if( itor != json.MemberEnd() )
+        {
+            Vector2 val;
+            if( itor->value.IsArray() && itor->value.Size() == 2u )
+            {
+                if( itor->value[0].IsNumber() && itor->value[1].IsNumber() )
+                {
+                    val.x = static_cast<float>( itor->value[0].GetDouble() );
+                    val.y = static_cast<float>( itor->value[1].GetDouble() );
+                    datablock->set_li3d_texScale( val );
+                }
+            }
+        }
+        itor = json.FindMember( "li3d_texscroll" );
+        if( itor != json.MemberEnd() )
+        {
+            Vector2 val;
+            if( itor->value.IsArray() && itor->value.Size() == 2u )
+            {
+                if( itor->value[0].IsNumber() && itor->value[1].IsNumber() )
+                {
+                    val.x = static_cast<float>( itor->value[0].GetDouble() );
+                    val.y = static_cast<float>( itor->value[1].GetDouble() );
+                    datablock->set_li3d_texScroll( val );
+                }
+            }
+        }
+        itor = json.FindMember( "li3d_texrotate" );
+        if( itor != json.MemberEnd() )
+        {
+            float val = 0.0f;
+            if( itor->value.IsNumber() )
+            {
+                val = static_cast<float>( itor->value.GetDouble() );
+            }
+            datablock->set_li3d_texRotate( val );
+        }
+#    endif
     }
     //-----------------------------------------------------------------------------------
     void HlmsJson::loadDatablocks( const rapidjson::Value &json, const NamedBlocks &blocks, Hlms *hlms,
@@ -516,13 +591,59 @@ namespace Ogre
                 const char *datablockName = itor->name.GetString();
                 try
                 {
+#    ifdef OGRE_BELIGHT_MINI
+                    IdString nameid = datablockName;
+                    Hlms::HlmsDatablockMap::const_iterator dbit = hlms->getDatablockMap().find( nameid );
+                    HlmsDatablock *datablock =
+                        dbit != hlms->getDatablockMap().end() ? dbit->second.datablock : NULL;
+                    bool skipFullLoad = false;
+                    bool isDuplicate = datablock != NULL;
+                    if( isDuplicate )
+                    {  // already exist
+                        skipFullLoad = ( datablock->get_li3d_flags() & 0x01 ) !=
+                                       0;  // skip full load if it's read_only
+                        if( skipFullLoad )
+                        {  // read only li3d_names and li3d_flags for read-only already existen
+                           // databloсks
+                            const rapidjson::Value &sub_json = itor->value;
+                            rapidjson::Value::ConstMemberIterator it =
+                                sub_json.FindMember( "li3d_names" );
+                            if( it != sub_json.MemberEnd() && it->value.IsString() )
+                            {
+                                String value( it->value.GetString(), it->value.GetStringLength() );
+                                datablock->set_li3d_names( value, false );
+                            }
+                            it = sub_json.FindMember( "li3d_flags" );
+                            if( it != sub_json.MemberEnd() )
+                            {
+                                if( it->value.IsUint() )
+                                {
+                                    unsigned int flags = it->value.GetUint();
+                                    datablock->set_li3d_flags( flags );
+                                }
+                            }
+                        }
+                    }
+                    else
+                        datablock = hlms->createDatablock(
+                            datablockName, datablockName, HlmsMacroblock(), HlmsBlendblock(),
+                            HlmsParamVec(), true, filename, resourceGroup );
+                    if( !skipFullLoad )
+                    {
+#    else
                     HlmsDatablock *datablock = hlms->createDatablock(
                         datablockName, datablockName, HlmsMacroblock(), HlmsBlendblock(), HlmsParamVec(),
                         true, filename, resourceGroup );
+#    endif
                     loadDatablockCommon( itor->value, blocks, datablock );
 
                     hlms->_loadJson( itor->value, blocks, datablock, resourceGroup, mListener,
                                      additionalTextureExtension );
+#    ifdef OGRE_BELIGHT_MINI
+                    }
+                    if( mListener )
+                        mListener->datablockLoaded( datablock, isDuplicate );
+#    endif
                 }
                 catch( Exception &e )
                 {
@@ -546,6 +667,33 @@ namespace Ogre
 
         if( d.HasParseError() )
         {
+#    ifdef OGRE_BELIGHT_MINI
+            if( d.GetParseError() == rapidjson::kParseErrorValueInvalid )
+            {
+                // workaround if we caught nan
+                size_t len = jsonString ? strlen( jsonString ) : 0;
+                if( len > 3 )
+                {
+                    size_t errorOffset = d.GetErrorOffset();
+                    if( errorOffset > 0 && errorOffset < ( len - 3 ) )
+                    {
+                        --errorOffset;
+                        if( jsonString[errorOffset] == 'n' && jsonString[errorOffset + 1] == 'a' &&
+                            jsonString[errorOffset + 2] == 'n' )
+                        {
+                            std::string fixed_jsonString;
+                            fixed_jsonString.reserve( len + 1 );
+                            fixed_jsonString.assign( jsonString, len );
+                            fixed_jsonString[errorOffset] = '1';
+                            fixed_jsonString[errorOffset + 1] = '.';
+                            fixed_jsonString[errorOffset + 2] = '0';
+                            return loadMaterials( filename, resourceGroup, fixed_jsonString.c_str(),
+                                                  additionalTextureExtension );
+                        }
+                    }
+                }
+            }
+#    endif
             OGRE_EXCEPT( Exception::ERR_INVALIDPARAMS, "HlmsJson::loadMaterials",
                          "Invalid JSON string in file " + filename + " at line " +
                              StringConverter::toString( d.GetErrorOffset() ) +
@@ -567,6 +715,14 @@ namespace Ogre
             {
                 HlmsSamplerblock samplerblock;
                 loadSampler( itSampler->value, samplerblock );
+#    ifdef OGRE_BELIGHT_MINI
+                if( StringUtil::endsWith( filename, ".mat_json" ) )
+                {
+                    // enforce anisotropic filtering
+                    samplerblock.setFiltering( TFO_ANISOTROPIC );
+                    samplerblock.mMaxAnisotropy = 16.0f;
+                }
+#    endif
 
                 LwConstString keyName( LwConstString( itSampler->name.GetString(),
                                                       itSampler->name.GetStringLength() + 1u ) );
@@ -997,6 +1153,51 @@ namespace Ogre
         outString += ",\n\t\t\t\"shadow_const_bias\" : ";
         outString += StringConverter::toString( datablock->mShadowConstantBias );
 
+#    ifdef OGRE_BELIGHT_MINI
+        if( !datablock->get_li3d_names().empty() )
+        {
+            outString += ",\n\t\t\t\"li3d_names\" : \"";
+            outString += jsonEscape( datablock->get_li3d_names() ) + "\"";
+        }
+        if( datablock->get_li3d_flags() != 0 )
+        {
+            outString += ",\n\t\t\t\"li3d_flags\" : ";
+            outString += StringConverter::toString( datablock->get_li3d_flags() );
+        }
+        if( datablock->get_li3d_tilesize() != Vector2::ZERO )
+        {
+            outString += ",\n\t\t\t\"li3d_tilesize\" : ";
+            outString += '[';
+            outString += StringConverter::toString( datablock->get_li3d_tilesize().x );
+            outString += ", ";
+            outString += StringConverter::toString( datablock->get_li3d_tilesize().y );
+            outString += ']';
+        }
+        if( datablock->get_li3d_texScale() != Vector2::UNIT_SCALE )
+        {
+            outString += ",\n\t\t\t\"li3d_texscale\" : ";
+            outString += '[';
+            outString += StringConverter::toString( datablock->get_li3d_texScale().x );
+            outString += ", ";
+            outString += StringConverter::toString( datablock->get_li3d_texScale().y );
+            outString += ']';
+        }
+        if( datablock->get_li3d_texScroll() != Vector2::ZERO )
+        {
+            outString += ",\n\t\t\t\"li3d_texscroll\" : ";
+            outString += '[';
+            outString += StringConverter::toString( datablock->get_li3d_texScroll().x );
+            outString += ", ";
+            outString += StringConverter::toString( datablock->get_li3d_texScroll().y );
+            outString += ']';
+        }
+        if( datablock->get_li3d_texRotate() != 0.0f )
+        {
+            outString += ",\n\t\t\t\"li3d_texrotate\" : ";
+            outString += StringConverter::toString( datablock->get_li3d_texRotate() );
+        }
+#    endif
+
         const Hlms *hlms = datablock->getCreator();
         hlms->_saveJson( datablock, outString, mListener, additionalTextureExtension );
 
@@ -1233,5 +1434,393 @@ namespace Ogre
         else
             outString += "{}";
     }
+#    ifdef OGRE_BELIGHT_MINI
+    void HlmsJson::loadDatablocksWithNames( const rapidjson::Value &json, const NamedBlocks &blocks,
+                                            Hlms *hlms, const String &filename,
+                                            std::vector<String> &materialNames,
+                                            const String &resourceGroup,
+                                            const String &additionalTextureExtension )
+    {
+        rapidjson::Value::ConstMemberIterator itor = json.MemberBegin();
+        rapidjson::Value::ConstMemberIterator end = json.MemberEnd();
+
+        while( itor != end )
+        {
+            if( itor->value.IsObject() )
+            {
+                const char *datablockName =
+                    materialNames.size() > 0 ? materialNames.back().c_str() : itor->name.GetString();
+                try
+                {
+                    IdString nameid = datablockName;
+                    Hlms::HlmsDatablockMap::const_iterator dbit = hlms->getDatablockMap().find( nameid );
+                    HlmsDatablock *datablock =
+                        dbit != hlms->getDatablockMap().end() ? dbit->second.datablock : NULL;
+                    if( !datablock )
+                        datablock = hlms->createDatablock( nameid, datablockName, HlmsMacroblock(),
+                                                           HlmsBlendblock(), HlmsParamVec(), true,
+                                                           filename, resourceGroup );
+                    loadDatablockCommon( itor->value, blocks, datablock );
+
+                    hlms->_loadJson( itor->value, blocks, datablock, resourceGroup, mListener,
+                                     additionalTextureExtension );
+
+                    if( materialNames.size() > 0 )
+                        materialNames.pop_back();
+                }
+                catch( Exception &e )
+                {
+                    // Ignore datablocks that already exist (useful for reloading materials)
+                    if( e.getNumber() != Exception::ERR_DUPLICATE_ITEM )
+                        throw;
+                    else
+                        LogManager::getSingleton().logMessage( e.getFullDescription() );
+                }
+            }
+
+            ++itor;
+        }
+    }
+
+    //-----------------------------------------------------------------------------------
+    void HlmsJson::loadMaterialsWithNames( const String &filename, std::vector<String> &materialNames,
+                                           const String &resourceGroup, const char *jsonString,
+                                           const String &additionalTextureExtension )
+    {
+        rapidjson::Document d;
+        d.Parse( jsonString );
+
+        if( d.HasParseError() )
+        {
+#        ifdef OGRE_BELIGHT_MINI
+            if( d.GetParseError() == rapidjson::kParseErrorValueInvalid )
+            {
+                // workaround if we caught nan
+                size_t len = jsonString ? strlen( jsonString ) : 0;
+                if( len > 3 )
+                {
+                    size_t errorOffset = d.GetErrorOffset();
+                    if( errorOffset > 0 && errorOffset < ( len - 3 ) )
+                    {
+                        --errorOffset;
+                        if( jsonString[errorOffset] == 'n' && jsonString[errorOffset + 1] == 'a' &&
+                            jsonString[errorOffset + 2] == 'n' )
+                        {
+                            std::string fixed_jsonString;
+                            fixed_jsonString.reserve( len + 1 );
+                            fixed_jsonString.assign( jsonString, len );
+                            fixed_jsonString[errorOffset] = '1';
+                            fixed_jsonString[errorOffset + 1] = '.';
+                            fixed_jsonString[errorOffset + 2] = '0';
+                            return loadMaterialsWithNames( filename, materialNames, resourceGroup,
+                                                           fixed_jsonString.c_str(),
+                                                           additionalTextureExtension );
+                        }
+                    }
+                }
+            }
+#        endif
+            OGRE_EXCEPT( Exception::ERR_INVALIDPARAMS, "HlmsJson::loadMaterials",
+                         "Invalid JSON string in file " + filename + " at line " +
+                             StringConverter::toString( d.GetErrorOffset() ) +
+                             " Reason: " + rapidjson::GetParseError_En( d.GetParseError() ) );
+        }
+
+        NamedBlocks blocks;
+
+        // Load samplerblocks
+        rapidjson::Value::ConstMemberIterator itor = d.FindMember( "samplers" );
+        if( itor != d.MemberEnd() && itor->value.IsObject() )
+        {
+            const rapidjson::Value &samplers = itor->value;
+
+            rapidjson::Value::ConstMemberIterator itSampler = samplers.MemberBegin();
+            rapidjson::Value::ConstMemberIterator enSampler = samplers.MemberEnd();
+
+            while( itSampler != enSampler )
+            {
+                HlmsSamplerblock samplerblock;
+                loadSampler( itSampler->value, samplerblock );
+#        ifdef OGRE_BELIGHT_MINI
+                if( StringUtil::endsWith( filename, ".mat_json" ) )
+                {
+                    // enforce anisotropic filtering
+                    samplerblock.setFiltering( TFO_ANISOTROPIC );
+                    samplerblock.mMaxAnisotropy = 16.0f;
+                }
+#        endif
+
+                LwConstString keyName( LwConstString( itSampler->name.GetString(),
+                                                      itSampler->name.GetStringLength() + 1u ) );
+
+                blocks.samplerblocks[keyName] = mHlmsManager->getSamplerblock( samplerblock );
+
+                ++itSampler;
+            }
+        }
+
+        // Load macroblocks
+        itor = d.FindMember( "macroblocks" );
+        if( itor != d.MemberEnd() && itor->value.IsObject() )
+        {
+            const rapidjson::Value &macroblocksJson = itor->value;
+
+            rapidjson::Value::ConstMemberIterator itMacros = macroblocksJson.MemberBegin();
+            rapidjson::Value::ConstMemberIterator enMacros = macroblocksJson.MemberEnd();
+
+            while( itMacros != enMacros )
+            {
+                HlmsMacroblock macroblock;
+                loadMacroblock( itMacros->value, macroblock );
+
+                LwConstString keyName(
+                    LwConstString( itMacros->name.GetString(), itMacros->name.GetStringLength() + 1u ) );
+
+                blocks.macroblocks[keyName] = mHlmsManager->getMacroblock( macroblock );
+
+                ++itMacros;
+            }
+        }
+
+        // Load blendblocks
+        itor = d.FindMember( "blendblocks" );
+        if( itor != d.MemberEnd() && itor->value.IsObject() )
+        {
+            const rapidjson::Value &blendblocksJson = itor->value;
+
+            rapidjson::Value::ConstMemberIterator itBlends = blendblocksJson.MemberBegin();
+            rapidjson::Value::ConstMemberIterator enBlends = blendblocksJson.MemberEnd();
+
+            while( itBlends != enBlends )
+            {
+                HlmsBlendblock blendblock;
+                loadBlendblock( itBlends->value, blendblock );
+
+                LwConstString keyName(
+                    LwConstString( itBlends->name.GetString(), itBlends->name.GetStringLength() + 1u ) );
+
+                blocks.blendblocks[keyName] = mHlmsManager->getBlendblock( blendblock );
+
+                ++itBlends;
+            }
+        }
+
+        rapidjson::Value::ConstMemberIterator itDatablock = d.MemberBegin();
+        rapidjson::Value::ConstMemberIterator enDatablock = d.MemberEnd();
+
+        while( itDatablock != enDatablock )
+        {
+            const IdString typeName( itDatablock->name.GetString() );
+
+            for( int i = 0; i < HLMS_MAX; ++i )
+            {
+                Hlms *hlms = mHlmsManager->getHlms( static_cast<HlmsTypes>( i ) );
+
+                if( hlms && typeName == hlms->getTypeName() )
+                {
+                    loadDatablocksWithNames( itDatablock->value, blocks, hlms, filename, materialNames,
+                                             resourceGroup, additionalTextureExtension );
+                }
+            }
+
+            if( typeName == "compute" )
+            {
+                HlmsJsonCompute jsonCompute( mHlmsManager,
+                                             mHlmsManager->getRenderSystem()->getTextureGpuManager() );
+                jsonCompute.loadJobs( itDatablock->value, blocks, resourceGroup );
+            }
+
+            ++itDatablock;
+        }
+
+        {
+            map<LwConstString, const HlmsMacroblock *>::type::const_iterator it =
+                blocks.macroblocks.begin();
+            map<LwConstString, const HlmsMacroblock *>::type::const_iterator en =
+                blocks.macroblocks.end();
+
+            while( it != en )
+            {
+                mHlmsManager->destroyMacroblock( it->second );
+                ++it;
+            }
+
+            blocks.macroblocks.clear();
+        }
+        {
+            map<LwConstString, const HlmsBlendblock *>::type::const_iterator it =
+                blocks.blendblocks.begin();
+            map<LwConstString, const HlmsBlendblock *>::type::const_iterator en =
+                blocks.blendblocks.end();
+
+            while( it != en )
+            {
+                mHlmsManager->destroyBlendblock( it->second );
+                ++it;
+            }
+
+            blocks.blendblocks.clear();
+        }
+        {
+            map<LwConstString, const HlmsSamplerblock *>::type::const_iterator it =
+                blocks.samplerblocks.begin();
+            map<LwConstString, const HlmsSamplerblock *>::type::const_iterator en =
+                blocks.samplerblocks.end();
+
+            while( it != en )
+            {
+                mHlmsManager->destroySamplerblock( it->second );
+                ++it;
+            }
+
+            blocks.samplerblocks.clear();
+        }
+    }
+    //-----------------------------------------------------------------------------------
+    void HlmsJson::saveMaterials( const std::vector<const HlmsDatablock *> &datablocks,
+                                  String &outString, const String &additionalTextureExtension )
+    {
+        outString.clear();
+        outString += "{";
+
+        set<const HlmsMacroblock *>::type macroblocks;
+        set<const HlmsBlendblock *>::type blendblocks;
+        set<const HlmsSamplerblock *>::type samplerblocks;
+
+        {
+            std::vector<const HlmsDatablock *>::const_iterator itor = datablocks.begin();
+            std::vector<const HlmsDatablock *>::const_iterator end = datablocks.end();
+
+            while( itor != end )
+            {
+                const HlmsDatablock *datablock = *itor;
+                const Hlms *hlms = datablock->getCreator();
+
+                const HlmsMacroblock *macroblock = datablock->getMacroblock( false );
+                macroblocks.insert( macroblock );
+
+                if( datablock->hasCustomShadowMacroblock() )
+                    macroblocks.insert( datablock->getMacroblock( true ) );
+
+                const HlmsBlendblock *blendblock = datablock->getBlendblock( false );
+                blendblocks.insert( blendblock );
+
+                const HlmsBlendblock *blendblockCaster = datablock->getBlendblock( true );
+                if( blendblock != blendblockCaster )
+                    blendblocks.insert( blendblockCaster );
+
+                hlms->_collectSamplerblocks( samplerblocks, datablock );
+
+                ++itor;
+            }
+        }
+
+        {
+            set<const HlmsSamplerblock *>::type::const_iterator itor = samplerblocks.begin();
+            set<const HlmsSamplerblock *>::type::const_iterator end = samplerblocks.end();
+
+            if( !samplerblocks.empty() )
+                outString += "\n\t\"samplers\" :\n\t{";
+
+            while( itor != end )
+                saveSamplerblock( *itor++, outString );
+
+            if( !samplerblocks.empty() )
+            {
+                outString.erase( outString.size() - 1 );  // Remove an extra comma
+                outString += "\n\t},";
+            }
+        }
+
+        {
+            set<const HlmsMacroblock *>::type::const_iterator itor = macroblocks.begin();
+            set<const HlmsMacroblock *>::type::const_iterator end = macroblocks.end();
+
+            if( !macroblocks.empty() )
+                outString += "\n\n\t\"macroblocks\" :\n\t{";
+
+            while( itor != end )
+                saveMacroblock( *itor++, outString );
+
+            if( !macroblocks.empty() )
+            {
+                outString.erase( outString.size() - 1 );  // Remove an extra comma
+                outString += "\n\t},";
+            }
+        }
+
+        {
+            set<const HlmsBlendblock *>::type::const_iterator itor = blendblocks.begin();
+            set<const HlmsBlendblock *>::type::const_iterator end = blendblocks.end();
+
+            if( !blendblocks.empty() )
+                outString += "\n\n\t\"blendblocks\" :\n\t{";
+
+            while( itor != end )
+                saveBlendblock( *itor++, outString );
+
+            if( !blendblocks.empty() )
+            {
+                outString.erase( outString.size() - 1 );  // Remove an extra comma
+                outString += "\n\t},";
+            }
+        }
+
+        {
+            Hlms *hlms = NULL;
+
+            std::vector<const HlmsDatablock *>::const_iterator itor = datablocks.begin();
+            std::vector<const HlmsDatablock *>::const_iterator end = datablocks.end();
+
+            while( itor != end )
+            {
+                const HlmsDatablock *datablock = *itor;
+                if( hlms != datablock->getCreator() )
+                {
+                    if( hlms != NULL )
+                    {
+                        outString.erase( outString.size() - 1 );  // Remove an extra comma
+                        outString += "\n\t},";
+                    }
+
+                    hlms = datablock->getCreator();
+                    outString += "\n\n\t\"";
+                    outString += hlms->getTypeNameStr();
+                    outString += "\" : \n\t{";
+                }
+
+                const String *name = datablock->getNameStr();
+                String fullName = name ? *name : datablock->getName().getReleaseText();
+                saveDatablock( fullName, datablock, outString, additionalTextureExtension );
+                ++itor;
+            }
+
+            if( datablocks.size() > 0u )
+            {
+                outString.erase( outString.size() - 1 );  // Remove an extra comma
+                outString += "\n\t},";
+            }
+        }
+
+        outString.erase( outString.size() - 1 );  // Remove an extra comma
+        if( !outString.empty() )
+            outString += "\n}";
+        else
+            outString += "{}";
+    }
+
+    String HlmsJson::jsonEscape( const String &s )
+    {
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer( buffer );
+        writer.String( s.data(), s.length() );
+        String res;
+        size_t sz = buffer.GetSize();
+        if( sz > 2 )
+            res.assign( buffer.GetString() + 1, sz - 2 );
+
+        return res;
+    }
+#    endif
 }  // namespace Ogre
 #endif

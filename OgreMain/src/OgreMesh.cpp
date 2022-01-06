@@ -2434,7 +2434,8 @@ namespace Ogre
                                ->getSizeInBytes();
                 }
 
-                if( sharedVertexData[VpNormal] != sharedVertexData[VpShadow] )
+                if( sharedVertexData[VpNormal] != sharedVertexData[VpShadow] &&
+                    sharedVertexData[VpShadow] )
                 {
                     for( i = 0; i < sharedVertexData[VpShadow]->vertexBufferBinding->getBufferCount();
                          ++i )
@@ -2461,7 +2462,8 @@ namespace Ogre
                                    ->getSizeInBytes();
                     }
 
-                    if( ( *si )->vertexData[VpNormal] != ( *si )->vertexData[VpShadow] )
+                    if( ( *si )->vertexData[VpNormal] != ( *si )->vertexData[VpShadow] &&
+                        ( *si )->vertexData[VpShadow] )
                     {
                         for( i = 0;
                              i < ( *si )->vertexData[VpShadow]->vertexBufferBinding->getBufferCount();
@@ -2479,7 +2481,8 @@ namespace Ogre
                     // Index data
                     ret += ( *si )->indexData[VpNormal]->indexBuffer->getSizeInBytes();
 
-                    if( ( *si )->indexData[VpNormal] != ( *si )->indexData[VpShadow] )
+                    if( ( *si )->indexData[VpNormal] != ( *si )->indexData[VpShadow] &&
+                        ( *si )->indexData[VpShadow] )
                         ret += ( *si )->indexData[VpShadow]->indexBuffer->getSizeInBytes();
                 }
             }

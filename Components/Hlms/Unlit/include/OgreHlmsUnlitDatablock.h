@@ -231,6 +231,10 @@ namespace Ogre
 
         void calculateHash() override;
 
+#ifdef OGRE_BELIGHT_MINI
+        bool isEqual(const HlmsUnlitDatablock& other, float fPrec=0.00001526f) const;
+#endif
+
         static const uint32 MaterialSizeInGpu;
         static const uint32 MaterialSizeInGpuAligned;
     };

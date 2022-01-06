@@ -498,4 +498,59 @@ namespace Ogre
                 mTextures[i]->scheduleTransitionTo( GpuResidency::Resident );
         }
     }
+#ifdef OGRE_BELIGHT_MINI
+    void OGRE_HLMS_TEXTURE_BASE_CLASS::collectAllTextures(set<String>::type &collectedTextures)
+    {
+        for( size_t i=0; i<OGRE_HLMS_TEXTURE_BASE_MAX_TEX; ++i )
+        {
+            TextureGpu *texture = mTextures[i];
+
+            if( texture )
+            {
+                String resourceName = texture->getRealResourceNameStr();
+                if(!resourceName.empty())
+                    collectedTextures.insert( resourceName );
+            }
+        }
+    }
+    void OGRE_HLMS_TEXTURE_BASE_CLASS::destroy()
+    {
+        for( size_t i=0; i<OGRE_HLMS_TEXTURE_BASE_MAX_TEX; ++i )
+        {
+            if( mTextures[i] )
+                mTextures[i]->removeListener( this );
+        }
+
+        HlmsManager *hlmsManager = mCreator->getHlmsManager();
+        if( hlmsManager )
+        {
+            if( mTexturesDescSet )
+            {
+                hlmsManager->destroyDescriptorSetTexture( mTexturesDescSet );
+                mTexturesDescSet = 0;
+            }
+            if( mSamplersDescSet )
+            {
+                hlmsManager->destroyDescriptorSetSampler( mSamplersDescSet );
+                mSamplersDescSet = 0;
+            }
+
+            for( size_t i=0; i<OGRE_HLMS_TEXTURE_BASE_MAX_TEX; ++i )
+            {
+                if( mSamplerblocks[i] )
+                    hlmsManager->destroySamplerblock( mSamplerblocks[i] );
+            }
+        }
+
+        memset( mTexIndices, 0, sizeof( mTexIndices ) );
+        memset( mTextures, 0, sizeof( mTextures ) );
+        memset( mSamplerblocks, 0, sizeof( mSamplerblocks ) );
+
+        for( size_t i=0; i<OGRE_HLMS_TEXTURE_BASE_MAX_TEX; ++i )
+            mTexLocationInDescSet[i] = OGRE_HLMS_TEXTURE_BASE_MAX_TEX;
+
+        HlmsDatablock::destroy();
+    }
+#endif
+    
 }

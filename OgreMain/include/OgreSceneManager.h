@@ -50,6 +50,9 @@ Torus Knot Software Ltd.
 #include "Threading/OgreThreads.h"
 
 #include "OgreHeaderPrefix.h"
+#ifdef OGRE_BELIGHT_MINI
+#include "OgreEntity.h"
+#endif
 
 namespace Ogre
 {
@@ -2633,6 +2636,12 @@ namespace Ogre
         void _setCurrentRenderStage( IlluminationRenderStage stage ) { mIlluminationStage = stage; }
         IlluminationRenderStage _getCurrentRenderStage() const { return mIlluminationStage; }
 
+#ifdef OGRE_BELIGHT_MINI
+        virtual bool isQuadCustomCullVisible(const Camera* cam, const Vector3* vrect){ return true; }
+        virtual bool isPlanarReflectionActorCustomCullVisible(const Ogre::Camera* cam, size_t actorId){ return true; }
+        virtual void untrackEntityRenderables(v1::Entity* entity){};
+        virtual void untrackItemRenderables(Item* item){};
+#endif
     protected:
         void fireWorkerThreadsAndWait();
 

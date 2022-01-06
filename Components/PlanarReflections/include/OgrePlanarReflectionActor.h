@@ -38,6 +38,9 @@ THE SOFTWARE.
 #include "OgreVector2.h"
 
 #include "OgreHeaderPrefix.h"
+#ifdef OGRE_BELIGHT_MINI
+#include "OgreSphere.h"
+#endif
 
 namespace Ogre
 {
@@ -81,6 +84,10 @@ namespace Ogre
         Plane      mPlane;
         Vector3    mCenter;
         Vector2    mHalfSize;
+#ifdef OGRE_BELIGHT_MINI
+        mutable Real mScreenArea;
+        mutable Vector2 mScreenSize;
+#endif
         Quaternion mOrientation;
 
         bool  mHasReservation;
@@ -115,6 +122,10 @@ namespace Ogre
         PlanarReflectionActor() :
             mCenter( Vector3::ZERO ),
             mHalfSize( Vector2::UNIT_SCALE ),
+#ifdef OGRE_BELIGHT_MINI
+            mScreenArea( -1.0f ),
+            mScreenSize( -1.0f, -1.0f ),
+#endif
             mOrientation( Quaternion::IDENTITY ),
             mHasReservation( false ),
             mCurrentBoundSlot( 0xFF ),
@@ -160,6 +171,45 @@ namespace Ogre
         uint8 getCurrentBoundSlot() const;
 
         Real getSquaredDistanceTo( const Vector3 &pos ) const;
+#ifdef OGRE_BELIGHT_MINI
+        Sphere getBoundSphere() const
+        {
+            return Sphere(mCenter, std::max(mHalfSize.x, mHalfSize.y)); //Sphere(mCenter, sqrtf(mHalfSize.x * mHalfSize.x + mHalfSize.y * mHalfSize.y));
+        }
+        Real getScreenArea() const
+        {
+            return mScreenArea;
+        }
+        void setScreenArea(Real area) const
+        {
+            mScreenArea = area;
+        }
+        const Vector2& getScreenSize() const
+        {
+            return mScreenSize;
+        }
+        void setScreenSize(const Vector2& sz) const
+        {
+            mScreenSize = sz;
+            mScreenArea = sz.x * sz.y;
+        }
+        void resetScreenSize()
+        {
+            mScreenSize.x = -1.0f;
+            mScreenSize.y = -1.0f;
+            mScreenArea = -1.0f;
+        }
+        const Ogre::Vector3* getPlaneQuadVertices(Ogre::Vector3* ret_vrect)
+        {
+            Vector3 dy(mOrientation.yAxis() * mHalfSize.y);
+            Vector3 dx(mOrientation.xAxis() * mHalfSize.x);
+            ret_vrect[0] = mCenter + dy - dx;
+            ret_vrect[1] = mCenter - dy - dx;
+            ret_vrect[2] = mCenter - dy + dx;
+            ret_vrect[3] = mCenter + dy + dx;
+            return ret_vrect;
+        }
+#endif
     };
 
     /** @} */

@@ -58,6 +58,9 @@ namespace Ogre
         mDatablock( 0 ),
         mAlphaRejectFunc( CMPF_ALWAYS_PASS ),
         mAlphaRejectVal( 0 ),
+#ifdef OGRE_BELIGHT_MINI
+        mLightingEnabled( true ),
+#endif
         mMaxSimultaneousLights( OGRE_MAX_SIMULTANEOUS_LIGHTS ),
         mStartLight( 0 ),
         mIteratePerLight( false ),
@@ -183,6 +186,9 @@ namespace Ogre
 
         mAlphaRejectFunc = oth.mAlphaRejectFunc;
         mAlphaRejectVal = oth.mAlphaRejectVal;
+#ifdef OGRE_BELIGHT_MINI
+        mLightingEnabled = oth.mLightingEnabled;
+#endif
         mMaxSimultaneousLights = oth.mMaxSimultaneousLights;
         mStartLight = oth.mStartLight;
         mIteratePerLight = oth.mIteratePerLight;

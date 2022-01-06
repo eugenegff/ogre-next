@@ -603,4 +603,28 @@ namespace Ogre
         }
     }
 #endif
+    //-----------------------------------------------------------------------
+#ifdef OGRE_BELIGHT_MINI
+    void SceneNode::_updateMovablesWorldAABB()
+    {
+        ObjectVec::const_iterator itor_obj = mAttachments.begin();
+        ObjectVec::const_iterator end_obj = mAttachments.end();
+        while( itor_obj != end_obj )
+        {
+            ( *itor_obj )->_updateWorldAABB();
+            ++itor_obj;
+        }
+
+        // Keep propagating updates to our children
+        NodeVec::iterator itor = mChildren.begin();
+        NodeVec::iterator end = mChildren.end();
+        while( itor != end )
+        {
+            assert( dynamic_cast<SceneNode *>( *itor ) );
+            SceneNode *scnNode = static_cast<SceneNode *>( *itor );
+            scnNode->_updateMovablesWorldAABB();
+            ++itor;
+        }
+    }
+#endif
 }  // namespace Ogre

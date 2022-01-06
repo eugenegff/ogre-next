@@ -320,6 +320,10 @@ namespace Ogre
 #if OGRE_DEBUG_MODE
         void _setCachedTransformOutOfDate() override;
 #endif
+
+#ifdef OGRE_BELIGHT_MINI
+        void _updateMovablesWorldAABB();
+#endif
     };
     /** @} */
     /** @} */

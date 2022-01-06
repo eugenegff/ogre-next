@@ -159,7 +159,11 @@ namespace Ogre
                     setToken( lexeme, line, tokens.get() );
                     state = READY;
                 }
+#ifdef OGRE_BELIGHT_MINI
+                else if( c == closebrace && lexeme.size() == 1 && lexeme[0] == openbrace )  // parse "{}" and "{ }" as '{','}', but "{xxx}" as WORD
+#else
                 else if( c == openbrace || c == closebrace || c == colon )
+#endif
                 {
                     setToken( lexeme, line, tokens.get() );
                     lexeme = c;

@@ -80,6 +80,9 @@ namespace Ogre
 
 #if !OGRE_NO_JSON
         mScriptPatterns.push_back( "*.material.json" );
+#    ifdef OGRE_BELIGHT_MINI
+        mScriptPatterns.push_back( "*.mat_json" );
+#    endif
         ResourceGroupManager::getSingleton()._registerScriptLoader( this );
 #endif
     }
@@ -926,7 +929,14 @@ namespace Ogre
         }
     }
     //-----------------------------------------------------------------------------------
-    Real HlmsManager::getLoadingOrder() const { return 100; }
+    Real HlmsManager::getLoadingOrder() const
+    {
+#    ifdef OGRE_BELIGHT_MINI
+        return 90.0f;
+#    else
+        return 100;
+#    endif
+    }
 #endif
     //-----------------------------------------------------------------------------------
     const HlmsManager::BlockIdxVec &HlmsManager::_getActiveBlocksIndices(

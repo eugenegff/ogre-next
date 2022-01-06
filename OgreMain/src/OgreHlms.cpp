@@ -2646,6 +2646,7 @@ namespace Ogre
 
                 {
                     const Ogre::CompositorShadowNodeDef *shadowNodeDef = shadowNode->getDefinition();
+                    assert( shadowNodeDef );
 
                     char tmpBuffer[64];
                     LwString propName( LwString::FromEmptyPointer( tmpBuffer, sizeof( tmpBuffer ) ) );
@@ -2654,13 +2655,23 @@ namespace Ogre
                     const size_t basePropNameSize = propName.size();
 
                     uint32 shadowMapTexIdx = 0u;
+                    size_t shadowMapTexDefinitionsCount =
+                        shadowNodeDef->getNumShadowTextureDefinitions();
 
                     for( size_t i = 0; i < numShadowMapLights; ++i )
                     {
                         // Skip inactive lights (e.g. no directional lights are available
                         // and there's a shadow map that only accepts dir lights)
-                        while( !shadowNode->isShadowMapIdxActive( shadowMapTexIdx ) )
+                        while( shadowMapTexIdx < shadowMapTexDefinitionsCount &&
+                               !shadowNode->isShadowMapIdxActive( shadowMapTexIdx ) )
                             ++shadowMapTexIdx;
+
+                        if( shadowMapTexIdx >= shadowMapTexDefinitionsCount )
+                        {  // out of available shadow maps number
+                            setProperty( HlmsBaseProp::NumShadowMapLights, i );  // fix
+                                                                                 // NumShadowMapLights
+                            break;
+                        }
 
                         const Ogre::ShadowTextureDefinition *shadowTexDef =
                             shadowNodeDef->getShadowTextureDefinition( shadowMapTexIdx );
@@ -2723,6 +2734,8 @@ namespace Ogre
                         setProperty( propName.c_str(), shadowTexDef->arrayIdx );
 
                         const Light *light = shadowNode->getLightAssociatedWith( shadowMapTexIdx );
+                        assert( light );  // it should not be null here because we've already checked
+                                          // shadowMapTexIdx above
                         if( useStaticBranchShadowMapLights )
                         {
                             fractPart = modff( (float)shadowTexDef->uvLength.x, &intPart );
@@ -3088,10 +3101,15 @@ namespace Ogre
 
             const CompositorPass *pass = sceneManager->getCurrentCompositorPass();
 
-            if( pass )
+            if( pass && shadowNode )
             {
                 const uint32 shadowMapIdx = pass->getDefinition()->mShadowMapIdx;
                 const Light *light = shadowNode->getLightAssociatedWith( shadowMapIdx );
+#ifdef OGRE_BELIGHT_MINI
+                if( light == nullptr )
+                    ;
+                else
+#endif
                 if( light->getType() == Light::LT_DIRECTIONAL )
                     setProperty( HlmsBaseProp::ShadowCasterDirectional, 1 );
                 else if( light->getType() == Light::LT_POINT )

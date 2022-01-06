@@ -42,7 +42,7 @@ namespace Ogre
         mDevice( device ),
         mVaoManager( vaoManager )
     {
-        const size_t defaultCapacity = 4 * 1024 * 1024;
+        const size_t defaultCapacity = 8 * 1024 * 1024;
 
         MTLResourceOptions resourceOptions =
             MTLResourceCPUCacheModeWriteCombined | MTLResourceStorageModeShared;

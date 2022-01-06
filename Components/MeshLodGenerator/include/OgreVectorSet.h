@@ -29,7 +29,11 @@
 #ifndef _VectorSet_H__
 #define _VectorSet_H__
 
+#ifdef OGRE_BELIGHT_MINI
+#include "OgreAdvSmallVector.h"
+#else
 #include "OgreSmallVector.h"
+#endif
 
 namespace Ogre
 {
@@ -38,9 +42,18 @@ namespace Ogre
     /// You can insert in O(1) time, if you know that it doesn't exists.
     /// You can remove in O(1) time, if you know the position of the item.
     template <typename T, unsigned S>
+#ifdef OGRE_BELIGHT_MINI
+    struct VectorSet : public AdvSmallVector<T, S>
+#else
     struct VectorSet : public SmallVector<T, S>
+#endif
     {
+
+#ifdef OGRE_BELIGHT_MINI
+        typedef typename AdvSmallVector<T, S>::iterator iterator;
+#else
         typedef typename SmallVector<T, S>::iterator iterator;
+#endif
 
         void     addNotExists( const T &item );                        // Complexity: O(1)!!
         void     remove( iterator it );                                // Complexity: O(1)!!

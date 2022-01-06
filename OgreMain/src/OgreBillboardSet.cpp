@@ -76,6 +76,9 @@ namespace Ogre
             mCommonUpVector( Vector3::UNIT_Y ),
             mVaoManager( 0 ),
             mPointRendering( false ),
+#ifdef OGRE_BELIGHT_MINI
+            mUseNormals( false ),
+#endif
             mBuffersCreated( false ),
             mPoolSize( poolSize ),
             mExternalData( externalData ),
@@ -714,6 +717,13 @@ namespace Ogre
             size_t offset = 0;
             decl->addElement( 0, offset, VET_FLOAT3, VES_POSITION );
             offset += VertexElement::getTypeSize( VET_FLOAT3 );
+#ifdef OGRE_BELIGHT_MINI
+            if( mUseNormals )
+            {
+                decl->addElement( 0, offset, VET_FLOAT3, VES_NORMAL );
+                offset += VertexElement::getTypeSize( VET_FLOAT3 );
+            }
+#endif
             decl->addElement( 0, offset, VET_COLOUR, VES_DIFFUSE );
             offset += VertexElement::getTypeSize( VET_COLOUR );
             // Texture coords irrelevant when enabled point rendering (generated
@@ -1086,6 +1096,9 @@ namespace Ogre
             Root::getSingleton().convertColourValue( bb.mColour, &colour );
             RGBA *pCol;
 
+#ifdef OGRE_BELIGHT_MINI
+            Vector3 shared_normal( 0.0f, 0.0f, 1.0f );
+#endif
             // Texcoords
             assert( bb.mUseTexcoordRect || bb.mTexcoordIndex < mTextureCoords.size() );
             const Ogre::FloatRect &r =
@@ -1098,6 +1111,15 @@ namespace Ogre
                 *mLockPtr++ = bb.mPosition.x;
                 *mLockPtr++ = bb.mPosition.y;
                 *mLockPtr++ = bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1113,6 +1135,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[0].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[0].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[0].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1128,6 +1159,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[1].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[1].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[1].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1143,6 +1183,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[2].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[2].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[2].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1158,6 +1207,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[3].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[3].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[3].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1185,6 +1243,15 @@ namespace Ogre
                 *mLockPtr++ = pt.x + bb.mPosition.x;
                 *mLockPtr++ = pt.y + bb.mPosition.y;
                 *mLockPtr++ = pt.z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1201,6 +1268,15 @@ namespace Ogre
                 *mLockPtr++ = pt.x + bb.mPosition.x;
                 *mLockPtr++ = pt.y + bb.mPosition.y;
                 *mLockPtr++ = pt.z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1217,6 +1293,15 @@ namespace Ogre
                 *mLockPtr++ = pt.x + bb.mPosition.x;
                 *mLockPtr++ = pt.y + bb.mPosition.y;
                 *mLockPtr++ = pt.z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1233,6 +1318,15 @@ namespace Ogre
                 *mLockPtr++ = pt.x + bb.mPosition.x;
                 *mLockPtr++ = pt.y + bb.mPosition.y;
                 *mLockPtr++ = pt.z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1263,6 +1357,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[0].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[0].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[0].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1278,6 +1381,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[1].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[1].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[1].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1293,6 +1405,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[2].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[2].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[2].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );
@@ -1308,6 +1429,15 @@ namespace Ogre
                 *mLockPtr++ = offsets[3].x + bb.mPosition.x;
                 *mLockPtr++ = offsets[3].y + bb.mPosition.y;
                 *mLockPtr++ = offsets[3].z + bb.mPosition.z;
+#ifdef OGRE_BELIGHT_MINI
+                if( mUseNormals )
+                {
+                    // Normal
+                    *mLockPtr++ = shared_normal.x;
+                    *mLockPtr++ = shared_normal.y;
+                    *mLockPtr++ = shared_normal.z;
+                }
+#endif
                 // Colour
                 // Convert float* to RGBA*
                 pCol = static_cast<RGBA *>( static_cast<void *>( mLockPtr ) );

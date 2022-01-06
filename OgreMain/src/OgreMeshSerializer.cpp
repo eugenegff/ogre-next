@@ -189,6 +189,7 @@ namespace Ogre
             // Call implementation
             impl->importMesh( stream, pDest, mListener );
             // Warn on old version of mesh
+#ifndef OGRE_BELIGHT_MINI
             if( ver != mVersionData[0]->versionString )
             {
                 LogManager::getSingleton().logMessage(
@@ -196,6 +197,7 @@ namespace Ogre
                         "); you should upgrade it as soon as possible" + " using the OgreMeshTool tool.",
                     LML_CRITICAL );
             }
+#endif
 
             if( mListener )
                 mListener->processMeshCompleted( pDest );

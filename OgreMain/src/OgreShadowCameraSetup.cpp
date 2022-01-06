@@ -144,8 +144,8 @@ namespace Ogre
             // set FOV slightly larger than the spotlight range to ensure coverage
             Radian fovy = light->getSpotlightOuterAngle() * Real( 1.2 );
             // limit angle
-            if( fovy.valueDegrees() > 175 )
-                fovy = Degree( 175 );
+            if( fovy.valueDegrees() > 150 )
+                fovy = Degree( 150 );
             texCam->setFOVy( fovy );
 
             // Calculate position, which same as spotlight position

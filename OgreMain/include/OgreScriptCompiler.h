@@ -572,6 +572,20 @@ namespace Ogre
         }
     };
 
+#ifdef OGRE_BELIGHT_MINI  // materials library
+    class _OgreExport TranslatedMaterialScriptCompilerEvent : public ScriptCompilerEvent
+    {
+    public:
+        const Ogre::Material *material;
+        static String         eventType;
+
+        TranslatedMaterialScriptCompilerEvent( const Ogre::Material *mat ) :
+            ScriptCompilerEvent( eventType ), material( mat )
+        {
+        }
+    };
+#endif
+
     class _OgreExport CreateMaterialScriptCompilerEvent : public ScriptCompilerEvent
     {
     public:
@@ -697,6 +711,12 @@ namespace Ogre
         ID_SHADOW_CASTER_FRAGMENT_PROGRAM_REF,
         ID_SHADOW_CASTER_MATERIAL,
 
+#ifdef OGRE_BELIGHT_MINI  // materials library
+        ID_LI3D_NAMES,
+        ID_LI3D_LEGACYNAMES,
+        ID_LI3D_FLAGS,
+        ID_LI3D_TILESIZE,
+#endif
         ID_LOD_VALUES,
         ID_LOD_STRATEGY,
         ID_LOD_DISTANCES,
@@ -763,6 +783,9 @@ namespace Ogre
         ID_CULL_MODE,
             ID_CLOCKWISE,
             ID_ANTICLOCKWISE,
+#ifdef OGRE_BELIGHT_MINI
+        ID_LIGHTING,
+#endif
         ID_SHADING,
             ID_FLAT, 
             ID_GOURAUD,

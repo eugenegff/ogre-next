@@ -1403,9 +1403,17 @@ namespace Ogre
 
             for( size_t i = 0u; i < maxActiveActors; ++i )
             {
+#    ifdef OGRE_BELIGHT_MINI
+                TextureGpu *texture = mPlanarReflections->getTexture( i );
+                if( texture )
+                    barrierSolver.resolveTransition( resourceTransitions, texture,
+                                                     ResourceLayout::Texture, ResourceAccess::Read,
+                                                     1u << PixelShader );
+#    else
                 barrierSolver.resolveTransition(
                     resourceTransitions, mPlanarReflections->getTexture( (uint8)i ),
                     ResourceLayout::Texture, ResourceAccess::Read, 1u << PixelShader );
+#    endif
             }
         }
 #endif
@@ -2077,16 +2085,26 @@ namespace Ogre
             for( size_t i = 0; i < 16; ++i )
                 *passBufferPtr++ = (float)viewMatrix[0][i];
 
+            if( shadowNode )
+            {
             size_t shadowMapTexIdx = 0;
             const TextureGpuVec &contiguousShadowMapTex =
                 shadowNode ? shadowNode->getContiguousShadowMapTex() : c_emptyTextureContainer;
+
+            const Ogre::CompositorShadowNodeDef *shadowNodeDef = shadowNode->getDefinition();
+            assert( shadowNodeDef );
+            size_t shadowMapTexDefinitionsCount = shadowNodeDef->getNumShadowTextureDefinitions();
 
             for( size_t i = 0u; i < numShadowMapLights; ++i )
             {
                 // Skip inactive lights (e.g. no directional lights are available
                 // and there's a shadow map that only accepts dir lights)
-                while( !shadowNode->isShadowMapIdxActive( shadowMapTexIdx ) )
+                while( shadowMapTexIdx < shadowMapTexDefinitionsCount &&
+                       !shadowNode->isShadowMapIdxActive( shadowMapTexIdx ) )
                     ++shadowMapTexIdx;
+
+                // check if we are out of available shadow maps number;
+                assert( shadowMapTexIdx < shadowMapTexDefinitionsCount );
 
                 // mat4 shadowRcv[numShadowMapLights].texViewProj
                 Matrix4 viewProjTex = shadowNode->getViewProjectionMatrix( shadowMapTexIdx );
@@ -2133,6 +2151,11 @@ namespace Ogre
                 *passBufferPtr++ = static_cast<float>( texHeight );
 
                 ++shadowMapTexIdx;
+            }
+            }
+            else
+            {
+                assert( numShadowMapLights == 0 );
             }
 
             // vec4 pixelOffset2x
@@ -2731,6 +2754,7 @@ namespace Ogre
 
             if( shadowNode )
             {
+                const TextureGpuVec &contiguousShadowMapTex = shadowNode->getContiguousShadowMapTex();
                 mPreparedPass.shadowMaps.reserve( contiguousShadowMapTex.size() );
 
                 TextureGpuVec::const_iterator itShadowMap = contiguousShadowMapTex.begin();
@@ -3488,9 +3512,16 @@ namespace Ogre
             {
                 const uint8 activeActorIdx = queuedRenderable.renderable->mCustomParameter & 0x7F;
                 TextureGpu *planarReflTex = mPlanarReflections->getTexture( activeActorIdx );
+#    ifdef OGRE_BELIGHT_MINI
+                if( planarReflTex )
+                {
+#    endif
                 *commandBuffer->addCommand<CbTexture>() = CbTexture(
                     uint16( mTexUnitSlotStart - 1u ), planarReflTex, mPlanarReflectionsSamplerblock );
                 mLastBoundPlanarReflection = queuedRenderable.renderable->mCustomParameter;
+#    ifdef OGRE_BELIGHT_MINI
+                }
+#    endif
             }
 #endif
             if( datablock->mTexturesDescSet != mLastDescTexture )

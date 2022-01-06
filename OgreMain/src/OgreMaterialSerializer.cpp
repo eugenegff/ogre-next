@@ -45,6 +45,11 @@ THE SOFTWARE.
 #include "OgreTechnique.h"
 #include "OgreTextureUnitState.h"
 
+#ifdef OGRE_BELIGHT_MINI  // materials library
+static Ogre::String ss_li3d_flag_readonly = "readonly";
+static Ogre::String ss_li3d_flag_hidden = "hidden";
+#endif
+
 namespace Ogre
 {
     //-----------------------------------------------------------------------
@@ -160,6 +165,38 @@ namespace Ogre
         {
             // Fire write begin event.
             fireMaterialEvent( MSE_WRITE_BEGIN, skipWriting, pMat.get() );
+
+#ifdef OGRE_BELIGHT_MINI  // materials library
+            if( !pMat->get_li3d_legacynames().empty() )
+            {
+                writeAttribute( 1, "li3d_legacynames" );
+                writeValue( pMat->get_li3d_legacynames() );
+            }
+
+            if( !pMat->get_li3d_names().empty() )
+            {
+                writeAttribute( 1, "li3d_names" );
+                writeValue( pMat->get_li3d_names() );
+            }
+
+            unsigned int flags = pMat->get_li3d_flags();
+            if( ( flags & 0x03 ) != 0 )
+            {
+                writeAttribute( 1, "li3d_flags" );
+                if( ( flags & 0x01 ) != 0 )
+                    writeValue( ss_li3d_flag_readonly );
+                if( ( flags & 0x02 ) != 0 )
+                    writeValue( ss_li3d_flag_hidden );
+            }
+
+            Vector2 tileSize = pMat->get_li3d_tilesize();
+            if( tileSize.x >= 0.0001f || tileSize.y >= 0.0001f )
+            {
+                writeAttribute( 1, "li3d_tilesize" );
+                writeValue( StringConverter::toString( tileSize.x ) );
+                writeValue( StringConverter::toString( tileSize.y ) );
+            }
+#endif
 
             // Write LOD information
             Material::LodValueIterator valueIt = pMat->getUserLodValueIterator();
@@ -313,6 +350,13 @@ namespace Ogre
             firePassEvent( MSE_WRITE_BEGIN, skipWriting, pPass );
 
             // lighting
+#ifdef OGRE_BELIGHT_MINI
+            if( mDefaults || pPass->getLightingEnabled() != true )
+            {
+                writeAttribute( 3, "lighting" );
+                writeValue( pPass->getLightingEnabled() ? "on" : "off" );
+            }
+#endif
             // max_lights
             if( mDefaults || pPass->getMaxSimultaneousLights() != OGRE_MAX_SIMULTANEOUS_LIGHTS )
             {
@@ -380,6 +424,9 @@ namespace Ogre
                 writeValue( StringConverter::toString( pPass->getLightMask() ) );
             }
 
+#ifdef OGRE_BELIGHT_MINI
+            if( pPass->getLightingEnabled() )
+#endif
             {
                 // Ambient
                 if( mDefaults || pPass->getAmbient().r != 1 || pPass->getAmbient().g != 1 ||

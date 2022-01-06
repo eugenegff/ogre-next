@@ -53,6 +53,16 @@ namespace Ogre
         bool                 isReserved;
     };
 
+#ifdef OGRE_BELIGHT_MINI
+    struct PlaneWithCenter
+    {
+        Vector3  planeNormal;
+        Vector3  planeCenter;
+        
+        PlaneWithCenter(const Vector3& normal, const Vector3& center): planeNormal(normal), planeCenter(center){}
+    };
+#endif
+
     typedef FastArray<Renderable *> RenderableArray;
     /** Planar Reflections can be used with both Unlit and PBS, but they're setup
         differently. Unlit is very fast, but also very basic. It's mostly useful for
@@ -81,8 +91,12 @@ namespace Ogre
         {
             Renderable    *renderable;
             MovableObject *movableObject;
+#ifdef OGRE_BELIGHT_MINI
+            std::vector<PlaneWithCenter> planes;
+#else
             Vector3        reflNormal;
             Vector3        renderableCenter;
+#endif
             uint32         hlmsHashes[2];
 
             /**
@@ -100,19 +114,27 @@ namespace Ogre
                 The center of the Renderable, in local space. We'll use this center to determine
                 how close this Renderable is to each Actor.
             */
+#ifdef OGRE_BELIGHT_MINI
+            TrackedRenderable( Renderable *_renderable, MovableObject *_movableObject, const std::vector<PlaneWithCenter>& _planes) : renderable( _renderable ), movableObject( _movableObject ), planes( _planes )
+#else
             TrackedRenderable( Renderable *_renderable, MovableObject *_movableObject,
                                const Vector3 &_reflNormal, const Vector3 &_renderableCenter ) :
                 renderable( _renderable ),
                 movableObject( _movableObject ),
                 reflNormal( _reflNormal ),
                 renderableCenter( _renderableCenter )
+#endif
             {
                 memset( hlmsHashes, 0, sizeof( hlmsHashes ) );
             }
         };
 
     protected:
+#ifdef OGRE_BELIGHT_MINI
+        typedef std::vector<TrackedRenderable> TrackedRenderableArray;
+#else
         typedef FastArray<TrackedRenderable> TrackedRenderableArray;
+#endif
 
         typedef vector<ActiveActorData>::type ActiveActorDataVec;
 
@@ -196,10 +218,14 @@ namespace Ogre
             Set to true if the workspace assigned via PlanarReflectionActor::workspaceName
             will filter the RTT with a compute filter (usually for higher quality).
         */
+#ifdef OGRE_BELIGHT_MINI
+        void setMaxActiveActors( IdString workspaceName, bool useAccurateLighting, const std::vector<Ogre::TextureGpu*>& sharedExternalTextures, TextureGpu* sharedWorkMSAATexture = NULL );
+#else
         void setMaxActiveActors( uint8 maxActiveActors, IdString workspaceName, bool useAccurateLighting,
                                  uint32 width, uint32 height, bool withMipmaps,
                                  PixelFormatGpu pixelFormat, bool mipmapMethodCompute );
 
+#endif
         /** Adds an actor plane that other objects can use as source for reflections if they're
             close enough to it (and aligned enough to the normal).
         @param actor
@@ -246,6 +272,11 @@ namespace Ogre
         void addRenderable( const TrackedRenderable &trackedRenderable );
         void removeRenderable( Renderable *renderable );
         void _notifyRenderableFlushedHlmsDatablock( Renderable *renderable );
+#ifdef OGRE_BELIGHT_MINI
+        void removeAllRenderables();
+        bool hasActorsAndRenderables() const { return mActors.size()>0 && mTrackedRenderables.size()>0; }
+        void removeExternalTextures();
+#endif
 
         void beginFrame();
         void update( Camera *camera, Real aspectRatio );

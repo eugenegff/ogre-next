@@ -70,6 +70,9 @@ namespace Ogre
     public:
         /// Gives you a chance to completely change the name of the texture when saving a material
         virtual void savingChangeTextureName( String &inOutAliasName, String &inOutTexName ) {}
+#ifdef OGRE_BELIGHT_MINI
+        virtual void datablockLoaded(HlmsDatablock *datablock, bool duplicate=false){}
+#endif
     };
 
     /** HLMS stands for "High Level Material System". */
@@ -108,7 +111,11 @@ namespace Ogre
         void loadDatablocks( const rapidjson::Value &json, const NamedBlocks &blocks, Hlms *hlms,
                              const String &filename, const String &resourceGroup,
                              const String &additionalTextureExtension );
-
+#ifdef OGRE_BELIGHT_MINI
+        void loadDatablocksWithNames( const rapidjson::Value &json, const NamedBlocks &blocks, Hlms *hlms,
+                             const String &filename, std::vector<String>& materialNames, const String &resourceGroup,
+                             const String &additionalTextureExtension );
+#endif
     public:
         static void toQuotedStr( FilterOptions value, String &outString );
         static void toQuotedStr( TextureAddressingMode value, String &outString );
@@ -185,6 +192,26 @@ namespace Ogre
         */
         void saveMaterial( const HlmsDatablock *datablock, String &outString,
                            const String &additionalTextureExtension );
+#ifdef OGRE_BELIGHT_MINI
+        void loadMaterialsWithNames( const String &filename, std::vector<String>& materialNames, const String &resourceGroup,
+                            const char *jsonString,
+                            const String &additionalTextureExtension );
+
+        /** Saves all the Datablocks collected in the given vector.
+        @param datablocks
+            collection of materials to save.
+        @param outString [out]
+            String with valid JSON output. String is appended to existing contents.
+        @param additionalTextureExtension
+            Additional string to append to the texture files while saving. e.g.
+            if texture name is "mytex.png" and additionalTextureExtension = ".dds"
+            then the actual texture saved will be "mytex.png.dds"
+            Leave it blank if you don't know what to put
+        */
+        void saveMaterials( const std::vector<const HlmsDatablock*>& datablocks, String& outString, const String& additionalTextureExtension );
+        
+        static String jsonEscape(const String &s);
+#endif
     };
     /** @} */
     /** @} */

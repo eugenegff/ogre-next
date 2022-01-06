@@ -38,6 +38,10 @@ THE SOFTWARE.
 #include "OgreVector2.h"
 #include "Vao/OgreVaoManager.h"
 
+#ifdef OGRE_BELIGHT_MINI
+#include "OgreRoot.h"
+#endif
+
 #import "Metal/MTLBlitCommandEncoder.h"
 
 namespace Ogre
@@ -79,6 +83,19 @@ namespace Ogre
         if( mTextureType == TextureTypes::TypeCube || mTextureType == TextureTypes::TypeCubeArray )
             desc.arrayLength /= 6u;
 
+#ifdef OGRE_BELIGHT_MINI
+        const RenderSystemCapabilities *capabilities = Root::getSingleton().getRenderSystem()->getCapabilities();
+        const bool isTiler = /*!isRenderWindowSpecific() &&*/ capabilities->hasCapability( RSC_IS_TILER );
+        if(isTiler)
+        {
+            if(@available(iOS 10, macOS 11, *))
+            {
+                if( (isTilerMemoryless() && isRenderToTexture()) || (isMultisample() && hasMsaaExplicitResolves() && !isTexture() && isRenderToTexture() && isDiscardableContent()) )
+                    desc.storageMode = MTLStorageModeMemoryless;
+            }
+        }
+#endif
+
         if( isMultisample() && hasMsaaExplicitResolves() )
         {
             desc.textureType = MTLTextureType2DMultisample;
@@ -112,6 +129,17 @@ namespace Ogre
 
         if( isMultisample() && !hasMsaaExplicitResolves() )
         {
+#ifdef OGRE_BELIGHT_MINI
+            if(isTiler)
+            {
+                if(@available(iOS 10, macOS 11, *))
+                {
+                    if(((isTilerMemoryless() || isTilerDepthMemoryless()) && isRenderToTexture()) || (!isTexture() && isRenderToTexture() && isDiscardableContent()) )
+                        desc.storageMode = MTLStorageModeMemoryless;
+                }
+            }
+#endif
+
             desc.textureType = MTLTextureType2DMultisample;
             desc.depth = 1u;
             desc.arrayLength = 1u;

@@ -907,6 +907,9 @@ namespace Ogre
         if( this->getInternalWidth() == colourTarget->getInternalWidth() &&
             this->getInternalHeight() == colourTarget->getInternalHeight() &&
             this->getSampleDescription() == colourTarget->getSampleDescription() &&
+#ifdef OGRE_BELIGHT_MINI
+            this->isTilerMemoryless() == (colourTarget->isTilerMemoryless() || colourTarget->isTilerDepthMemoryless()) &&
+#endif
             this->isRenderWindowSpecific() == colourTarget->isRenderWindowSpecific() )
         {
             return true;

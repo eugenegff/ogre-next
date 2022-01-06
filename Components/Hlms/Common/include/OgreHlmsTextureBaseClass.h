@@ -166,6 +166,10 @@ namespace Ogre
         bool shouldStayLoaded( TextureGpu *texture ) override;
 
         void loadAllTextures();
+#ifdef OGRE_BELIGHT_MINI
+        void collectAllTextures(set<String>::type &collectedTextures) override;
+        void destroy() override;
+#endif
     };
 }  // namespace Ogre
 

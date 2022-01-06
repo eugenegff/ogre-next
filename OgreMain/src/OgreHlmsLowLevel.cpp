@@ -187,6 +187,9 @@ namespace Ogre
     {
         mCurrentSceneManager = sceneManager;
 
+#ifdef OGRE_BELIGHT_MINI
+        shadowNode = NULL;  //Our HlmsLowLevel materials do not support for shadowing and lighting
+#endif
         HlmsCache retVal = Hlms::preparePassHash( shadowNode, casterPass, dualParaboloid, sceneManager );
 
         // Never produce a HlmsCache.hash of 0. Only affects LowLevel because HLMS_LOW_LEVEL = 0

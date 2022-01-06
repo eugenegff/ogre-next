@@ -118,6 +118,13 @@ namespace Ogre
         mName( name ),
         mTextureHash( 0 ),
         mType( creator->getType() ),
+#ifdef OGRE_BELIGHT_MINI
+        m_li3d_tilesize( Vector2::ZERO ),
+        m_li3d_flags( 0u ),
+        m_li3d_texRotate( 0.0f ),
+        m_li3d_texScale( Vector2::UNIT_SCALE ),
+        m_li3d_texScroll( Vector2::ZERO ),
+#endif
         mAllowTextureResidencyChange( true ),
         mIgnoreFlushRenderables( false ),
         mAlphaTestCmp( CMPF_ALWAYS_PASS ),
@@ -214,8 +221,22 @@ namespace Ogre
     {
         OgreProfileExhaustive( "HlmsDatablock::clone" );
 
+#ifdef OGRE_BELIGHT_MINI
+        IdString nameid = name;
+        Hlms::HlmsDatablockMap::const_iterator dbit = mCreator->getDatablockMap().find( nameid );
+        HlmsDatablock *datablock =
+            dbit != mCreator->getDatablockMap().end() ? dbit->second.datablock : NULL;
+        if( datablock )
+        {
+            datablock->destroy();
+        }
+        else
+            datablock = mCreator->createDatablock( nameid, name, HlmsMacroblock(), HlmsBlendblock(),
+                                                   HlmsParamVec() );
+#else
         HlmsDatablock *datablock =
             mCreator->createDatablock( name, name, HlmsMacroblock(), HlmsBlendblock(), HlmsParamVec() );
+#endif
 
         // Directly const cast macroblocks to keep their mRefCount consistent
         datablock->setMacroblock( const_cast<HlmsMacroblock *>( mMacroblock[0] ), false );
@@ -230,6 +251,16 @@ namespace Ogre
         datablock->mAlphaTestThreshold = mAlphaTestThreshold;
 
         datablock->mShadowConstantBias = mShadowConstantBias;
+
+#ifdef OGRE_BELIGHT_MINI  // materials library
+        datablock->m_li3d_legacynames = m_li3d_legacynames;
+        datablock->m_li3d_names = m_li3d_names;
+        datablock->m_li3d_tilesize = m_li3d_tilesize;
+        datablock->m_li3d_flags = m_li3d_flags;
+        datablock->m_li3d_texScale = m_li3d_texScale;
+        datablock->m_li3d_texScroll = m_li3d_texScroll;
+        datablock->m_li3d_texRotate = m_li3d_texRotate;
+#endif
 
         cloneImpl( datablock );
 
@@ -533,4 +564,43 @@ namespace Ogre
         return c_cmpStrings[compareFunction];
     }
     //-----------------------------------------------------------------------------------
+
+#ifdef OGRE_BELIGHT_MINI
+    void HlmsDatablock::set_li3d_names( const String &value, bool replace )
+    {
+        if( replace || m_li3d_names.empty() )
+            m_li3d_names = value;
+        else if( m_li3d_names != value )
+        {  // merge
+            StringVector vecparams = StringUtil::tokenise( value, ", \t" );
+            StringVector mvecparams = StringUtil::tokenise( m_li3d_names, ", \t" );
+            for( StringVector::iterator vit = vecparams.begin(); vit != vecparams.end(); ++vit )
+            {
+                StringVector::iterator mit = std::find( mvecparams.begin(), mvecparams.end(), *vit );
+                if( mit == mvecparams.end() )
+                    mvecparams.push_back( *vit );
+            }
+            m_li3d_names.clear();
+            for( StringVector::iterator it = mvecparams.begin(); it != mvecparams.end(); ++it )
+            {
+                if( !m_li3d_names.empty() )
+                    m_li3d_names.append( " " );
+                m_li3d_names.append( "\"" ).append( *it ).append( "\"" );
+            }
+        }
+    }
+
+    void HlmsDatablock::set_li3d_texScale( const Vector2 &scale )
+    {
+        m_li3d_texScale = scale;
+        if( m_li3d_texScale.x < 0.001f )
+            m_li3d_texScale.x = 0.001f;
+        if( m_li3d_texScale.y < 0.001f )
+            m_li3d_texScale.y = 0.001f;
+    }
+    void HlmsDatablock::set_li3d_texScroll( const Vector2 &scroll ) { m_li3d_texScroll = scroll; }
+    void HlmsDatablock::set_li3d_texRotate( Real degRotate ) { m_li3d_texRotate = degRotate; }
+    void HlmsDatablock::destroy() {}
+#endif
+
 }  // namespace Ogre

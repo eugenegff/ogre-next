@@ -294,6 +294,10 @@ namespace Ogre
         */
         void       setSortRenderQueue( uint8 rqId, RqSortMode sortMode );
         RqSortMode getSortRenderQueue( uint8 rqId ) const;
+        
+#ifdef OGRE_BELIGHT_MINI
+        SceneManager* getSceneManager() const { return mSceneManager; }
+#endif
     };
 
 #define OGRE_RQ_MAKE_MASK( x ) ( ( 1 << ( x ) ) - 1 )

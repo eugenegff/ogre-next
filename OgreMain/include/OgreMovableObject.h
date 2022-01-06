@@ -606,6 +606,10 @@ namespace Ogre
         void _setCachedAabbOutOfDate() { mCachedAabbOutOfDate = true; }
         bool isCachedAabbOutOfDate() const { return mCachedAabbOutOfDate; }
 #endif
+
+#ifdef OGRE_BELIGHT_MINI
+        void _updateWorldAABB();
+#endif
     };
 
     /** Interface definition for a factory class which produces a certain

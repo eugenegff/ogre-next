@@ -1007,6 +1007,13 @@ namespace Ogre
         mIds["shadow_caster_vertex_program_ref"] = ID_SHADOW_CASTER_VERTEX_PROGRAM_REF;
         mIds["shadow_caster_fragment_program_ref"] = ID_SHADOW_CASTER_FRAGMENT_PROGRAM_REF;
 
+#ifdef OGRE_BELIGHT_MINI  // materials library
+        mIds["li3d_names"] = ID_LI3D_NAMES;
+        mIds["li3d_legacynames"] = ID_LI3D_LEGACYNAMES;
+        mIds["li3d_flags"] = ID_LI3D_FLAGS;
+        mIds["li3d_tilesize"] = ID_LI3D_TILESIZE;
+#endif
+
         mIds["lod_values"] = ID_LOD_VALUES;
         mIds["lod_strategy"] = ID_LOD_STRATEGY;
         mIds["lod_distances"] = ID_LOD_DISTANCES;
@@ -1074,6 +1081,9 @@ namespace Ogre
         mIds["cull_mode"] = ID_CULL_MODE;
         mIds["clockwise"] = ID_CLOCKWISE;
         mIds["anticlockwise"] = ID_ANTICLOCKWISE;
+#ifdef OGRE_BELIGHT_MINI
+        mIds["lighting"] = ID_LIGHTING;
+#endif
         mIds["shading"] = ID_SHADING;
         mIds["flat"] = ID_FLAT;
         mIds["gouraud"] = ID_GOURAUD;
@@ -1792,7 +1802,11 @@ namespace Ogre
     Real ScriptCompilerManager::getLoadingOrder() const
     {
         /// Load relatively early, before most script loaders run
+#ifdef OGRE_BELIGHT_MINI
+        return 100.0f;
+#else
         return 90.0f;
+#endif
     }
     //-----------------------------------------------------------------------
     void ScriptCompilerManager::parseScript( DataStreamPtr &stream, const String &groupName )
@@ -1833,4 +1847,9 @@ namespace Ogre
     String CreateParticleSystemScriptCompilerEvent::eventType = "createParticleSystem";
     //-------------------------------------------------------------------------
     String CreateCompositorScriptCompilerEvent::eventType = "createCompositor";
+#ifdef OGRE_BELIGHT_MINI  // materials library
+    //----------------------------------------------------------------------------
+    String TranslatedMaterialScriptCompilerEvent::eventType = "translatedMaterial";
+#endif
+
 }  // namespace Ogre

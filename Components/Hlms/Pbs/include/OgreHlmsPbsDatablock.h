@@ -756,6 +756,15 @@ namespace Ogre
                                    void *extraData ) override;
 
         void calculateHash() override;
+        
+#ifdef OGRE_BELIGHT_MINI
+        bool isEqual(const HlmsPbsDatablock& other, float fPrec=0.00001526f) const;
+        void set_li3d_TexTransformToUserValues();
+        void set_li3d_TexTransform(const Vector2& scale, const Vector2& scroll, Real degRotate);
+        void set_li3d_texScale(const Vector2& scale) override;
+        void set_li3d_texScroll(const Vector2& scroll) override;
+        void set_li3d_texRotate(Real degRotate) override;
+#endif
 
         static const uint32 MaterialSizeInGpu;
         static const uint32 MaterialSizeInGpuAligned;

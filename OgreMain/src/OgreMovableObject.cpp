@@ -342,6 +342,23 @@ namespace Ogre
         return retVal;
     }
     //-----------------------------------------------------------------------
+#ifdef OGRE_BELIGHT_MINI
+    void MovableObject::_updateWorldAABB()
+    {
+        Matrix4 derivedTransform = mParentNode->_getFullTransform();
+
+        Aabb retVal;
+        mObjectData.mLocalAabb->getAsAabb( retVal, mObjectData.mIndex );
+        retVal.transformAffine( derivedTransform );
+
+        mObjectData.mWorldAabb->setFromAabb( retVal, mObjectData.mIndex );
+
+#    if OGRE_DEBUG_MODE
+        mCachedAabbOutOfDate = false;
+#    endif
+    }
+#endif
+    //-----------------------------------------------------------------------
     float MovableObject::updateSingleWorldRadius()
     {
         const Vector3 derivedScale = mParentNode->_getDerivedScaleUpdated();
@@ -885,6 +902,11 @@ namespace Ogre
                 Mathlib::TestFlags4( *visibilityFlags, Mathlib::SetAll( LAYER_VISIBILITY ) );
             ArrayMaskI isCaster =
                 Mathlib::TestFlags4( *visibilityFlags, Mathlib::SetAll( LAYER_SHADOW_CASTER ) );
+#ifdef OGRE_BELIGHT_MINI
+            ArrayMaskI notInfCaster =
+                Mathlib::TestFlags4( *visibilityFlags, Mathlib::SetAll( uint32( 0x00000001 ) ) );
+            isCaster = Mathlib::And( isCaster, notInfCaster );
+#endif
 
             // Fuse result with visibility flag
             // finalMask = ( visible&!infiniteAabb & sceneFlags & visibilityFlags) != 0 ? 0xffffffff : 0

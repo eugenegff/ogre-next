@@ -74,7 +74,7 @@ namespace Ogre
     {
         if( mHlmsDatablock->getAlphaTest() != CMPF_ALWAYS_PASS )
         {
-            if( mVaoPerLod[VpShadow].empty() || mVaoPerLod[VpShadow][0] != mSubMesh->mVao[VpNormal][0] )
+            if( mVaoPerLod[VpShadow].empty() || (!mSubMesh->mVao[VpNormal].empty() && mVaoPerLod[VpShadow][0] != mSubMesh->mVao[VpNormal][0]) )
             {
                 // Has alpha testing. Disable the optimized shadow mapping buffers.
                 mVaoPerLod[VpShadow] = mSubMesh->mVao[VpNormal];
@@ -82,7 +82,7 @@ namespace Ogre
         }
         else
         {
-            if( mVaoPerLod[VpShadow].empty() || mVaoPerLod[VpShadow][0] != mSubMesh->mVao[VpShadow][0] )
+            if( mVaoPerLod[VpShadow].empty() || (!mSubMesh->mVao[VpShadow].empty() && mVaoPerLod[VpShadow][0] != mSubMesh->mVao[VpShadow][0]) )
             {
                 // Restore the optimized shadow mapping buffers.
                 mVaoPerLod[VpShadow] = mSubMesh->mVao[VpShadow];

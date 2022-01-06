@@ -557,7 +557,11 @@ namespace Ogre
         {
             Light const *light = mShadowMapCastingLights[itor->light].light;
 
+#ifdef OGRE_BELIGHT_MINI
+            if( light && light->isAttached() )
+#else
             if( light )
+#endif
             {
                 Camera *texCamera = itShadowCamera->camera;
 
@@ -824,7 +828,7 @@ namespace Ogre
         }
         else
         {
-            return true;
+            return false;
         }
     }
     //-----------------------------------------------------------------------------------
@@ -905,9 +909,8 @@ namespace Ogre
 
         Vector3 vScale( 0.5f * shadowTexDef.uvLength.x, -0.5f * shadowTexDef.uvLength.y, 1.0f );
         clipToImageSpace.makeTransform(
-            Vector3( vScale.x + shadowTexDef.uvOffset.x, -vScale.y + shadowTexDef.uvOffset.y, 0.0f ),  //
-            Vector3( vScale.x, vScale.y, 1.0f ),                                                       //
-            Quaternion::IDENTITY );
+            Vector3( vScale.x + shadowTexDef.uvOffset.x, -vScale.y + shadowTexDef.uvOffset.y, 0.0f ),
+            Vector3( vScale.x, vScale.y, 1.0f ), Quaternion::IDENTITY );
 
         return /*PROJECTIONCLIPSPACE2DTOIMAGESPACE_PERSPECTIVE*/ clipToImageSpace *
                mShadowMapCameras[shadowMapIdx].camera->getProjectionMatrixWithRSDepth() *
@@ -925,9 +928,9 @@ namespace Ogre
 
         if( shadowMapIdx < mShadowMapCastingLights.size() )
         {
-            if( mDefinition->mShadowMapTexDefinitions[shadowMapIdx].shadowMapTechnique ==
-                    SHADOWMAP_PSSM &&
-                isShadowMapIdxActive( shadowMapIdx ) )
+            if( isShadowMapIdxActive( shadowMapIdx ) &&
+                mDefinition->mShadowMapTexDefinitions[shadowMapIdx].shadowMapTechnique ==
+                    SHADOWMAP_PSSM )
             {
                 assert( dynamic_cast<PSSMShadowCameraSetup *>(
                     mShadowMapCameras[shadowMapIdx].shadowCameraSetup.get() ) );
@@ -947,9 +950,9 @@ namespace Ogre
 
         if( shadowMapIdx < mShadowMapCastingLights.size() )
         {
-            if( mDefinition->mShadowMapTexDefinitions[shadowMapIdx].shadowMapTechnique ==
-                    SHADOWMAP_PSSM &&
-                isShadowMapIdxActive( shadowMapIdx ) )
+            if( isShadowMapIdxActive( shadowMapIdx ) &&
+                mDefinition->mShadowMapTexDefinitions[shadowMapIdx].shadowMapTechnique ==
+                    SHADOWMAP_PSSM )
             {
                 assert( dynamic_cast<PSSMShadowCameraSetup *>(
                     mShadowMapCameras[shadowMapIdx].shadowCameraSetup.get() ) );
@@ -969,9 +972,9 @@ namespace Ogre
 
         if( shadowMapIdx < mShadowMapCastingLights.size() )
         {
-            if( mDefinition->mShadowMapTexDefinitions[shadowMapIdx].shadowMapTechnique ==
-                    SHADOWMAP_PSSM &&
-                isShadowMapIdxActive( shadowMapIdx ) )
+            if( isShadowMapIdxActive( shadowMapIdx ) &&
+                mDefinition->mShadowMapTexDefinitions[shadowMapIdx].shadowMapTechnique ==
+                    SHADOWMAP_PSSM )
             {
                 assert( dynamic_cast<PSSMShadowCameraSetup *>(
                     mShadowMapCameras[shadowMapIdx].shadowCameraSetup.get() ) );

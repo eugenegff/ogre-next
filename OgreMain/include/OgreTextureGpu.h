@@ -168,6 +168,19 @@ namespace Ogre
             ///
             /// If this flag is present, either RenderToTexture or Uav must be present
             DiscardableContent  = 1u << 14u
+#ifdef OGRE_BELIGHT_MINI
+            ,
+            /// When this flag is present, we can safe VRAM by using memoryless storage mode (Metal on
+            /// iOS and Apple Silicon macOS) Choose the memoryless mode if your texture is a memoryless
+            /// render target that’s temporarily populated and accessed by the GPU. Memoryless render
+            /// targets are render targets that exist only in tile memory and are not backed by system
+            /// memory. An example is a depth or stencil texture thatʼs used only within a render pass
+            /// and isnʼt needed before or after GPU execution. This flag requires RenderToTexture
+            TilerMemoryless = 1u << 15u,
+            /// When this flag is present together with RenderToTexture it will use DepthBuffer with
+            /// TilerMemoryless option
+            TilerDepthMemoryless = 1u << 16u
+#endif
             // clang-format on
         };
     }
@@ -639,6 +652,13 @@ namespace Ogre
         bool isManualTexture() const;
         bool isPoolOwner() const;
         bool isDiscardableContent() const;
+#ifdef OGRE_BELIGHT_MINI
+        bool isTilerMemoryless() const { return ( mTextureFlags & TextureFlags::TilerMemoryless ) != 0; }
+        bool isTilerDepthMemoryless() const
+        {
+            return ( mTextureFlags & TextureFlags::TilerDepthMemoryless ) != 0;
+        }
+#endif
 
         /// OpenGL RenderWindows are a bit specific:
         ///     * Their origins are upside down. Which means we need to flip Y.

@@ -56,6 +56,10 @@ namespace Ogre
         // Loading order
         mLoadOrder = 100.0f;
         // Scripting is supported by this manager
+#ifdef OGRE_BELIGHT_MINI
+		mScriptPatterns.push_back("*.li3d_material");
+		ResourceGroupManager::getSingleton()._registerScriptLoader(this);
+#endif
 
         // Resource type
         mResourceType = "Material";

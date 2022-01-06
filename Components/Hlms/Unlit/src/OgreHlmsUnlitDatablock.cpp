@@ -425,4 +425,51 @@ namespace Ogre
     }
     //-----------------------------------------------------------------------------------
     TextureGpu *HlmsUnlitDatablock::getEmissiveTexture() const { return getTexture( 0 ); }
+#ifdef OGRE_BELIGHT_MINI
+    bool HlmsUnlitDatablock::isEqual(const HlmsUnlitDatablock& other, float fPrec) const
+    {
+        if( mNumEnabledAnimationMatrices != other.mNumEnabledAnimationMatrices ||
+            mHasColour != other.mHasColour ||
+            fabsf(mR-other.mR)>fPrec ||
+            fabsf(mG-other.mG)>fPrec ||
+            fabsf(mB-other.mB)>fPrec ||
+            fabsf(mA-other.mA)>fPrec )
+            return false;
+            
+        for(int i=0; i<NUM_UNLIT_TEXTURE_TYPES; ++i)
+        {
+            if( mUvSource[i]                != other.mUvSource[i]                   ||
+                mBlendModes[i]              != other.mBlendModes[i]                 ||
+                mEnabledAnimationMatrices[i]!= other.mEnabledAnimationMatrices[i]   ||
+                mEnablePlanarReflection[i]  != other.mEnablePlanarReflection[i]     ||
+                mTextureSwizzles[i]         != other.mTextureSwizzles[i] )
+                return false;
+            
+            const Matrix4& m = mTextureMatrices[i];
+            const Matrix4& om = other.mTextureMatrices[i];
+            if( fabsf(m[0][0]-om[0][0])>fPrec ||
+                fabsf(m[0][1]-om[0][1])>fPrec ||
+                fabsf(m[0][2]-om[0][2])>fPrec ||
+                fabsf(m[0][3]-om[0][3])>fPrec ||
+                fabsf(m[1][0]-om[1][0])>fPrec ||
+                fabsf(m[1][1]-om[1][1])>fPrec ||
+                fabsf(m[1][2]-om[1][2])>fPrec ||
+                fabsf(m[1][3]-om[1][3])>fPrec ||
+                fabsf(m[2][0]-om[2][0])>fPrec ||
+                fabsf(m[2][1]-om[2][1])>fPrec ||
+                fabsf(m[2][2]-om[2][2])>fPrec ||
+                fabsf(m[2][3]-om[2][3])>fPrec ||
+                fabsf(m[3][0]-om[3][0])>fPrec ||
+                fabsf(m[3][1]-om[3][1])>fPrec ||
+                fabsf(m[3][2]-om[3][2])>fPrec ||
+                fabsf(m[3][3]-om[3][3])>fPrec )
+                return false;
+                
+            if(mTextures[i] != other.mTextures[i])
+                return false;
+        }
+    
+        return true;
+    }
+#endif
 }  // namespace Ogre

@@ -285,7 +285,9 @@ namespace Ogre
                                                               dstFormat );
             }
 
+#ifndef OGRE_BELIGHT_MINI  // it's normal to have fallback images with external buffer
             assert( image.getAutoDelete() && "This should be impossible. Memory will leak." );
+#endif
             image.loadDynamicImage( data, image.getWidth(), image.getHeight(), image.getDepthOrSlices(),
                                     image.getTextureType(), dstFormat, true, numMipmaps );
             if( texture->getPixelFormat() != dstFormat )
@@ -440,7 +442,9 @@ namespace Ogre
                 }
             }
 
+#ifndef OGRE_BELIGHT_MINI  // it's normal to have fallback images with external buffer
             assert( image.getAutoDelete() && "This should be impossible. Memory will leak." );
+#endif
             image.loadDynamicImage( data, origWidth, origHeight, image.getDepthOrSlices(),
                                     image.getTextureType(), dstFormat, true, numMipmaps );
             if( texture->getPixelFormat() != dstFormat )

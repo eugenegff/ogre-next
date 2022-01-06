@@ -307,13 +307,14 @@ namespace Ogre
         ++mRenderingStarted;
         mRoot->_notifyRenderingFrameStarted();
 
+        const CompositorShadowNode *pShadowNode = mSceneManager->getCurrentShadowNode();
+        casterPass = casterPass && pShadowNode != NULL;
         for( size_t i = 0; i < HLMS_MAX; ++i )
         {
             Hlms *hlms = mHlmsManager->getHlms( static_cast<HlmsTypes>( i ) );
             if( hlms )
             {
-                mPassCache[i] = hlms->preparePassHash( mSceneManager->getCurrentShadowNode(), casterPass,
-                                                       dualParaboloid, mSceneManager );
+                mPassCache[i] = hlms->preparePassHash( pShadowNode, casterPass, dualParaboloid, mSceneManager );
             }
         }
     }

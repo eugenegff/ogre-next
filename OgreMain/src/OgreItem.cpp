@@ -68,6 +68,10 @@ namespace Ogre
     {
         if( res == mMesh.get() && mInitialised )
         {
+#ifdef OGRE_BELIGHT_MINI
+            if( mManager )
+                mManager->untrackItemRenderables( this );
+#endif
             _initialise( true );
         }
     }

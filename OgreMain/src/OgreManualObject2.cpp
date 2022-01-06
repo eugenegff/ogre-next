@@ -653,7 +653,8 @@ namespace Ogre
 
             mCurrentSection->mVaoPerLod[0].push_back( mCurrentSection->mVao );
             mCurrentSection->mVaoPerLod[1].push_back( mCurrentSection->mVao );
-            mCurrentSection->setDatablock( mCurrentDatablockName );
+            mCurrentSection->setDatablockOrMaterialName(
+                mCurrentDatablockName, Ogre::ResourceGroupManager::AUTODETECT_RESOURCE_GROUP_NAME );
 
             mRenderables.push_back( mCurrentSection );
 

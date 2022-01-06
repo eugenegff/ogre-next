@@ -1672,8 +1672,12 @@ namespace Ogre
                             fallbackFormat = PFG_RG8_SNORM;
 
                         // Continue loading using a fallback
-                        image->loadDynamicImage( mErrorFallbackTexData, 2u, 2u, 1u,
-                                                 texture->getTextureType(), fallbackFormat, false, 1u );
+                        const size_t sizeBytes = 2u * 2u * 6u * 4u;
+                        uint8 *pData = reinterpret_cast<uint8 *>(
+                            OGRE_MALLOC_SIMD( sizeBytes, MEMCATEGORY_RESOURCE ) );
+                        memcpy( pData, mErrorFallbackTexData, sizeBytes );
+                        image->loadDynamicImage( pData, 2u, 2u, 1u, texture->getTextureType(),
+                                                 fallbackFormat, true, 1u );
                         autoDeleteImage = true;
                     }
                 }
@@ -2659,9 +2663,12 @@ namespace Ogre
                         fallbackFormat = PFG_RG8_SNORM;
 
                     // Continue loading using a fallback
-                    img->loadDynamicImage( mErrorFallbackTexData, 2u, 2u, 1u,
-                                           loadRequest.texture->getTextureType(), fallbackFormat, false,
-                                           1u );
+                    const size_t sizeBytes = 2u * 2u * 6u * 4u;
+                    uint8 *pData =
+                        reinterpret_cast<uint8 *>( OGRE_MALLOC_SIMD( sizeBytes, MEMCATEGORY_RESOURCE ) );
+                    memcpy( pData, mErrorFallbackTexData, sizeBytes );
+                    img->loadDynamicImage( pData, 2u, 2u, 1u, loadRequest.texture->getTextureType(),
+                                           fallbackFormat, true, 1u );
                 }
             }
         }
@@ -3335,6 +3342,25 @@ namespace Ogre
             bDone = workerThreadDone && mDownloadToRamQueue.empty() && mScheduledTasks.empty();
             if( !bDone )
             {
+#ifdef DEBUG
+                if( workerThreadDone && mDownloadToRamQueue.empty() && !mScheduledTasks.empty() )
+                {
+                    for( auto it = mScheduledTasks.begin(); it != mScheduledTasks.end(); ++it )
+                    {
+                        const TextureGpu *tex = it->first;
+                        LogManager::getSingleton().logMessage(
+                            "Texture " + tex->getRealResourceNameStr() + " has scheduled:" );
+                        const ScheduledTasksVec &tasks = it->second;
+                        for( auto itt = tasks.begin(); itt != tasks.end(); ++itt )
+                        {
+                            LogManager::getSingleton().logMessage(
+                                itt->tasksType == TaskTypeResidencyTransition ? "ResidencyTransition"
+                                                                              : "DestroyTexture" );
+                        }
+                    }
+                }
+#endif
+
                 mVaoManager->_update();
                 if( !workerThreadDone )
                 {

@@ -36,6 +36,9 @@ THE SOFTWARE.
 #include "OgreIteratorWrappers.h"
 #include "OgreResource.h"
 #include "OgreSharedPtr.h"
+#ifdef OGRE_BELIGHT_MINI
+#    include "OgreVector2.h"
+#endif
 
 #include "OgreHeaderPrefix.h"
 
@@ -95,6 +98,13 @@ namespace Ogre
         typedef ConstVectorIterator<LodValueArray> LodValueIterator;
 
     protected:
+#ifdef OGRE_BELIGHT_MINI  // materials library
+        String       m_li3d_legacynames;
+        String       m_li3d_names;
+        unsigned int m_li3d_flags;
+        Vector2      m_li3d_tilesize;
+#endif
+
         /** Internal method which sets the material up from the default settings.
          */
         void applyDefaults();
@@ -554,6 +564,17 @@ namespace Ogre
         @return True if the material needs recompilation.
         */
         bool getCompilationRequired() const { return mCompilationRequired; }
+
+#ifdef OGRE_BELIGHT_MINI  // materials library
+        const String &get_li3d_legacynames() const { return m_li3d_legacynames; }
+        void set_li3d_legacynames( const String &value ) { m_li3d_legacynames = value; }
+        const String &get_li3d_names() const { return m_li3d_names; }
+        void set_li3d_names( const String &value ) { m_li3d_names = value; }
+        unsigned int get_li3d_flags() const { return m_li3d_flags; }
+        void set_li3d_flags( unsigned int flags ) { m_li3d_flags = flags; }
+        const Vector2 &get_li3d_tilesize() const { return m_li3d_tilesize; }
+        void set_li3d_tilesize( const Vector2 &sz ) { m_li3d_tilesize = sz; }
+#endif
     };
     /** @} */
     /** @} */

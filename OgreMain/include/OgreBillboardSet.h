@@ -299,6 +299,11 @@ namespace Ogre
             /// Use point rendering?
             bool mPointRendering;
 
+#ifdef OGRE_BELIGHT_MINI
+            /// Use normals
+            bool mUseNormals;
+#endif
+
         private:
             /// Flag indicating whether the HW buffers have been created.
             bool mBuffersCreated;
@@ -822,6 +827,16 @@ namespace Ogre
 
             /** Returns whether point rendering is enabled. */
             virtual bool isPointRenderingEnabled() const { return mPointRendering; }
+
+#ifdef OGRE_BELIGHT_MINI
+            /// Use normals
+            void setUseNormals( bool b )
+            {
+                assert( !mBuffersCreated );
+                mUseNormals = b;
+            }
+            bool getUseNormals() const { return mUseNormals; }
+#endif
 
             /** Set the auto update state of this billboard set.
             @remarks

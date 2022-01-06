@@ -97,6 +97,17 @@ namespace Ogre
 
         TextureBox srcBox = srcChannel->getEmptyBox( 0 );
         TextureBox dstBox = dstChannel->getEmptyBox( 0 );
+        if(mDefinition && mDefinition->mShadowMapFullViewport==false && mDefinition->mShadowMapIdx!=~0U)
+        {
+            if(mDefinition->mNumViewports>0)
+            {
+                const CompositorPassDef::ViewportRect& viewport = mDefinition->mVpRect[0];
+                dstBox.x += roundf(dstBox.width * viewport.mVpLeft);
+                dstBox.y += roundf(dstBox.height * viewport.mVpTop);
+                dstBox.width = roundf(dstBox.width * viewport.mVpWidth);
+                dstBox.height = roundf(dstBox.height * viewport.mVpHeight);
+            }
+        }
         srcChannel->copyTo( dstChannel, dstBox, 0, srcBox, 0, false,
                             CopyEncTransitionMode::AlreadyInLayoutThenAuto,
                             CopyEncTransitionMode::AlreadyInLayoutThenAuto );
