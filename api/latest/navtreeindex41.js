@@ -1,11 +1,5 @@
 var NAVTREEINDEX41 =
 {
-"class_ogre_1_1_d3_d11_texture_gpu_window.html#adae831c8c3a0760106f62a502b7fb21a":[7,0,0,212,46],
-"class_ogre_1_1_d3_d11_texture_gpu_window.html#adb161795caec263b077532c05070dbe4":[7,0,0,212,31],
-"class_ogre_1_1_d3_d11_texture_gpu_window.html#adc4d050aca586041f3e6586fdfc6bd5e":[7,0,0,212,103],
-"class_ogre_1_1_d3_d11_texture_gpu_window.html#adc8b19ac20ceb1e984c06469aedda836":[7,0,0,212,92],
-"class_ogre_1_1_d3_d11_texture_gpu_window.html#add1ea0e81537e4b98ad11f6cc06f14cd":[7,0,0,212,72],
-"class_ogre_1_1_d3_d11_texture_gpu_window.html#ae3e0ad601752b91f2851c88f9ed49869":[7,0,0,212,104],
 "class_ogre_1_1_d3_d11_texture_gpu_window.html#ae641939cec4a57193dab3fc88921b7ae":[7,0,0,212,19],
 "class_ogre_1_1_d3_d11_texture_gpu_window.html#aeebb419ba824d0128f437bbe20cc81f9":[7,0,0,212,13],
 "class_ogre_1_1_d3_d11_texture_gpu_window.html#aeffebac258a366b31c8d6d3d7cdc1133":[7,0,0,212,27],
@@ -249,5 +243,11 @@ var NAVTREEINDEX41 =
 "class_ogre_1_1_d3_d11_window_swap_chain_based.html#a82775a5cee3e07ece4eda50763aa6137":[7,0,0,221,30],
 "class_ogre_1_1_d3_d11_window_swap_chain_based.html#a8357fe4fb4849772b94baa4bf47c7ded":[7,0,0,221,31],
 "class_ogre_1_1_d3_d11_window_swap_chain_based.html#a84376e87a8391ed924ee217fd70eac11":[7,0,0,221,26],
-"class_ogre_1_1_d3_d11_window_swap_chain_based.html#a89885dfa9c69c007065de174312ceec8":[7,0,0,221,17]
+"class_ogre_1_1_d3_d11_window_swap_chain_based.html#a89885dfa9c69c007065de174312ceec8":[7,0,0,221,17],
+"class_ogre_1_1_d3_d11_window_swap_chain_based.html#a8a464e98db9c09042b866bdb95b210f4":[7,0,0,221,12],
+"class_ogre_1_1_d3_d11_window_swap_chain_based.html#a91fa9348eb2e815ff1bd8ea04b6f7069":[7,0,0,221,1],
+"class_ogre_1_1_d3_d11_window_swap_chain_based.html#a93e6a86dde5483c053ca0f2a85bbfd6c":[7,0,0,221,34],
+"class_ogre_1_1_d3_d11_window_swap_chain_based.html#a994a69ea200442747a3da28d2f6728e1":[7,0,0,221,14],
+"class_ogre_1_1_d3_d11_window_swap_chain_based.html#a9ec1d985ef5286ca5c069373705e4187":[7,0,0,221,0],
+"class_ogre_1_1_d3_d11_window_swap_chain_based.html#aa6ee76edb7111f8feefbb1f73aae50be":[7,0,0,221,45]
 };
